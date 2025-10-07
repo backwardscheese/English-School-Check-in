@@ -330,8 +330,8 @@
                 <input type="text" id="studentName" placeholder="Enter student name">
             </div>
             <div class="form-group">
-                <label>Email (optional):</label>
-                <input type="email" id="studentEmail" placeholder="student@example.com">
+                <label>Class:</label>
+                <input type="text" id="studentEmail" placeholder="class type">
             </div>
             <div>
                 <button class="btn btn-primary" onclick="saveStudent()">Save Student</button>
@@ -376,14 +376,15 @@
             const savedData = loadData();
             if (savedData.students.length === 0) {
                 data.students = [
-                    { id: 1, name: "John Smith", email: "john@example.com" },
-                    { id: 2, name: "Emma Wilson", email: "emma@example.com" },
-                    { id: 3, name: "Michael Brown", email: "michael@example.com" }
+                    { id: 1, name: "John Smith", class: "private" },
+                    { id: 2, name: "Emma Wilson", class: "JHS" },
+                    { id: 3, name: "Michael Brown", class: "ES" }
                 ];
                 data.lessons = [
-                    { id: 1, name: "Group Class", duration: 60, cost: 30 },
-                    { id: 2, name: "Private Lesson", duration: 45, cost: 50 },
-                    { id: 3, name: "Conversation Practice", duration: 30, cost: 20 }
+                    { id: 1, name: "ES", duration: 50, cost: 2500 },
+                    { id: 2, name: "JHS", duration: 70, cost: 3000 },
+                    { id: 3, name: "HS", duration: 70, cost: 3000 },
+                    { id: 4, name: "Private Lesson", duration: 50, cost: 5000 },
                 ];
                 saveData();
             } else {
