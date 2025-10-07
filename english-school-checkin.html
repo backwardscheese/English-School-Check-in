@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English School Check-in System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            font-size: 1.1em;
+        }
+        
+        .tab:hover {
+            background: #e9ecef;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .student-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .student-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .student-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 5px;
+        }
+        
+        .student-card .status {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .log-entry {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .log-entry strong {
+            color: #667eea;
+        }
+        
+        .lesson-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .student-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 English School Check-in</h1>
+            <p>Student Attendance Tracking System</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('checkin')">Check In/Out</button>
+            <button class="tab" onclick="switchTab('logs')">Today's Logs</button>
+            <button class="tab" onclick="switchTab('students')">Manage Students</button>
+            <button class="tab" onclick="switchTab('lessons')">Lesson Types</button>
+        </div>
+        
+        <div class="content">
+            <!-- Check In/Out Tab -->
+            <div id="checkin" class="tab-content active">
+                <h2>Select Student to Check In/Out</h2>
+                <div id="studentGrid" class="student-grid"></div>
+            </div>
+            
+            <!-- Logs Tab -->
+            <div id="logs" class="tab-content">
+                <h2>Today's Activity Log</h2>
+                <div id="logsList"></div>
+            </div>
+            
+            <!-- Students Tab -->
+            <div id="students" class="tab-content">
+                <h2>Manage Students</h2>
+                <button class="btn btn-primary" onclick="showAddStudentModal()">+ Add New Student</button>
+                <div id="studentsList" style="margin-top: 20px;"></div>
+            </div>
+            
+            <!-- Lessons Tab -->
+            <div id="lessons" class="tab-content">
+                <h2>Lesson Types</h2>
+                <button class="btn btn-primary" onclick="showAddLessonModal()">+ Add Lesson Type</button>
+                <div id="lessonsList" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Check In/Out Modal -->
+    <div id="checkinModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalStudentName"></h2>
+            <div class="form-group">
+                <label>Action:</label>
+                <select id="actionSelect">
+                    <option value="in">Check In</option>
+                    <option value="out">Check Out</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Lesson Type:</label>
+                <select id="lessonSelect"></select>
+            </div>
+            <div>
+                <button class="btn btn-success" onclick="saveCheckInOut()">Confirm</button>
+                <button class="btn btn-secondary" onclick="closeModal('checkinModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Student Modal -->
+    <div id="addStudentModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Student</h2>
+            <div class="form-group">
+                <label>Student Name:</label>
+                <input type="text" id="studentName" placeholder="Enter student name">
+            </div>
+            <div class="form-group">
+                <label>Email (optional):</label>
+                <input type="email" id="studentEmail" placeholder="student@example.com">
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="saveStudent()">Save Student</button>
+                <button class="btn btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Lesson Modal -->
+    <div id="addLessonModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Lesson Type</h2>
+            <div class="form-group">
+                <label>Lesson Name:</label>
+                <input type="text" id="lessonName" placeholder="e.g., Group Class">
+            </div>
+            <div class="form-group">
+                <label>Duration (minutes):</label>
+                <input type="number" id="lessonDuration" placeholder="60">
+            </div>
+            <div class="form-group">
+                <label>Cost:</label>
+                <input type="number" id="lessonCost" placeholder="50" step="0.01">
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="saveLesson()">Save Lesson</button>
+                <button class="btn btn-secondary" onclick="closeModal('addLessonModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data structure stored in memory
+        let data = {
+            students: [],
+            lessons: [],
+            logs: []
+        };
+        
+        // Initialize with sample data
+        function initSampleData() {
+            const savedData = loadData();
+            if (savedData.students.length === 0) {
+                data.students = [
+                    { id: 1, name: "John Smith", email: "john@example.com" },
+                    { id: 2, name: "Emma Wilson", email: "emma@example.com" },
+                    { id: 3, name: "Michael Brown", email: "michael@example.com" }
+                ];
+                data.lessons = [
+                    { id: 1, name: "Group Class", duration: 60, cost: 30 },
+                    { id: 2, name: "Private Lesson", duration: 45, cost: 50 },
+                    { id: 3, name: "Conversation Practice", duration: 30, cost: 20 }
+                ];
+                saveData();
+            } else {
+                data = savedData;
+            }
+        }
+        
+        // Save data to memory
+        function saveData() {
+            // In a real application, this would save to a database
+            // For now, we keep it in memory during the session
+        }
+        
+        // Load data from memory
+        function loadData() {
+            return data;
+        }
+        
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'checkin') renderStudentGrid();
+            if (tabName === 'logs') renderLogs();
+            if (tabName === 'students') renderStudentsList();
+            if (tabName === 'lessons') renderLessonsList();
+        }
+        
+        // Render student grid for check-in
+        function renderStudentGrid() {
+            const grid = document.getElementById('studentGrid');
+            if (data.students.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><h3>No students yet</h3><p>Add students in the Manage Students tab</p></div>';
+                return;
+            }
+            
+            grid.innerHTML = data.students.map(student => {
+                const lastLog = getLastLog(student.id);
+                const status = lastLog && lastLog.action === 'in' ? 'Currently checked in' : 'Checked out';
+                return `
+                    <div class="student-card" onclick="showCheckinModal(${student.id})">
+                        <h3>${student.name}</h3>
+                        <div class="status">${status}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Get last log for a student
+        function getLastLog(studentId) {
+            const studentLogs = data.logs.filter(log => log.studentId === studentId);
+            return studentLogs.length > 0 ? studentLogs[studentLogs.length - 1] : null;
+        }
+        
+        // Show check-in modal
+        function showCheckinModal(studentId) {
+            const student = data.students.find(s => s.id === studentId);
+            const lastLog = getLastLog(studentId);
+            
+            document.getElementById('modalStudentName').textContent = student.name;
+            document.getElementById('actionSelect').value = (lastLog && lastLog.action === 'in') ? 'out' : 'in';
+            
+            const lessonSelect = document.getElementById('lessonSelect');
+            lessonSelect.innerHTML = data.lessons.map(lesson => 
+                `<option value="${lesson.id}">${lesson.name} (${lesson.duration}min - $${lesson.cost})</option>`
+            ).join('');
+            
+            document.getElementById('checkinModal').classList.add('active');
+            document.getElementById('checkinModal').dataset.studentId = studentId;
+        }
+        
+        // Save check-in/out
+        function saveCheckInOut() {
+            const studentId = parseInt(document.getElementById('checkinModal').dataset.studentId);
+            const action = document.getElementById('actionSelect').value;
+            const lessonId = parseInt(document.getElementById('lessonSelect').value);
+            
+            const lesson = data.lessons.find(l => l.id === lessonId);
+            const student = data.students.find(s => s.id === studentId);
+            
+            data.logs.push({
+                id: data.logs.length + 1,
+                studentId: studentId,
+                studentName: student.name,
+                action: action,
+                lessonId: lessonId,
+                lessonName: lesson.name,
+                duration: lesson.duration,
+                cost: lesson.cost,
+                timestamp: new Date().toISOString()
+            });
+            
+            saveData();
+            closeModal('checkinModal');
+            renderStudentGrid();
+            
+            alert(`${student.name} checked ${action === 'in' ? 'in' : 'out'} successfully!`);
+        }
+        
+        // Render logs
+        function renderLogs() {
+            const logsList = document.getElementById('logsList');
+            const today = new Date().toDateString();
+            const todayLogs = data.logs.filter(log => 
+                new Date(log.timestamp).toDateString() === today
+            );
+            
+            if (todayLogs.length === 0) {
+                logsList.innerHTML = '<div class="empty-state"><h3>No activity today</h3></div>';
+                return;
+            }
+            
+            logsList.innerHTML = todayLogs.reverse().map(log => {
+                const time = new Date(log.timestamp).toLocaleTimeString();
+                return `
+                    <div class="log-entry">
+                        <strong>${log.studentName}</strong> - ${log.action === 'in' ? 'Checked In' : 'Checked Out'}<br>
+                        Lesson: ${log.lessonName} (${log.duration}min - $${log.cost})<br>
+                        Time: ${time}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Show add student modal
+        function showAddStudentModal() {
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentEmail').value = '';
+            document.getElementById('addStudentModal').classList.add('active');
+        }
+        
+        // Save student
+        function saveStudent() {
+            const name = document.getElementById('studentName').value.trim();
+            const email = document.getElementById('studentEmail').value.trim();
+            
+            if (!name) {
+                alert('Please enter a student name');
+                return;
+            }
+            
+            data.students.push({
+                id: data.students.length + 1,
+                name: name,
+                email: email
+            });
+            
+            saveData();
+            closeModal('addStudentModal');
+            renderStudentsList();
+            alert('Student added successfully!');
+        }
+        
+        // Render students list
+        function renderStudentsList() {
+            const list = document.getElementById('studentsList');
+            if (data.students.length === 0) {
+                list.innerHTML = '<div class="empty-state"><h3>No students yet</h3></div>';
+                return;
+            }
+            
+            list.innerHTML = data.students.map(student => `
+                <div class="student-item">
+                    <div>
+                        <strong>${student.name}</strong><br>
+                        <small>${student.email || 'No email'}</small>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-danger btn-small" onclick="deleteStudent(${student.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Delete student
+        function deleteStudent(id) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                data.students = data.students.filter(s => s.id !== id);
+                saveData();
+                renderStudentsList();
+            }
+        }
+        
+        // Show add lesson modal
+        function showAddLessonModal() {
+            document.getElementById('lessonName').value = '';
+            document.getElementById('lessonDuration').value = '';
+            document.getElementById('lessonCost').value = '';
+            document.getElementById('addLessonModal').classList.add('active');
+        }
+        
+        // Save lesson
+        function saveLesson() {
+            const name = document.getElementById('lessonName').value.trim();
+            const duration = parseInt(document.getElementById('lessonDuration').value);
+            const cost = parseFloat(document.getElementById('lessonCost').value);
+            
+            if (!name || !duration || !cost) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            data.lessons.push({
+                id: data.lessons.length + 1,
+                name: name,
+                duration: duration,
+                cost: cost
+            });
+            
+            saveData();
+            closeModal('addLessonModal');
+            renderLessonsList();
+            alert('Lesson type added successfully!');
+        }
+        
+        // Render lessons list
+        function renderLessonsList() {
+            const list = document.getElementById('lessonsList');
+            if (data.lessons.length === 0) {
+                list.innerHTML = '<div class="empty-state"><h3>No lesson types yet</h3></div>';
+                return;
+            }
+            
+            list.innerHTML = data.lessons.map(lesson => `
+                <div class="lesson-item">
+                    <div>
+                        <strong>${lesson.name}</strong><br>
+                        <small>Duration: ${lesson.duration} minutes | Cost: $${lesson.cost}</small>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-danger btn-small" onclick="deleteLesson(${lesson.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Delete lesson
+        function deleteLesson(id) {
+            if (confirm('Are you sure you want to delete this lesson type?')) {
+                data.lessons = data.lessons.filter(l => l.id !== id);
+                saveData();
+                renderLessonsList();
+            }
+        }
+        
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        // Initialize app
+        initSampleData();
+        renderStudentGrid();
+    </script>
+</body>
+</html>
