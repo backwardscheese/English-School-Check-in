@@ -537,9 +537,14 @@
                 
                 return `
                     <div class="log-entry ${actionClass}">
-                        <strong>${log.studentName}</strong> - ${actionText}<br>
-                        Class: ${log.classType} (${log.duration}min - ¥${log.cost.toLocaleString()})<br>
-                        Date: ${date} | Time: ${time}
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <strong>${log.studentName}</strong> - ${actionText}<br>
+                                Class: ${log.classType} (${log.duration}min - ¥${log.cost.toLocaleString()})<br>
+                                Date: ${date} | Time: ${time}
+                            </div>
+                            <button class="btn btn-danger btn-small" onclick="deleteLog(${log.id})">Delete</button>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -605,9 +610,14 @@
                     const time = new Date(log.timestamp).toLocaleTimeString();
                     html += `
                         <div class="log-entry check-in">
-                            <strong>${log.studentName}</strong> - Checked In<br>
-                            Class: ${log.classType} (${log.duration}min - ¥${log.cost.toLocaleString()})<br>
-                            Date: ${date} | Time: ${time}
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <strong>${log.studentName}</strong> - Checked In<br>
+                                    Class: ${log.classType} (${log.duration}min - ¥${log.cost.toLocaleString()})<br>
+                                    Date: ${date} | Time: ${time}
+                                </div>
+                                <button class="btn btn-danger btn-small" onclick="deleteLog(${log.id})">Delete</button>
+                            </div>
                         </div>
                     `;
                 });
@@ -629,6 +639,24 @@
         function clearSearch() {
             document.getElementById('studentSearch').value = '';
             renderLogs();
+        }
+
+        // Delete a log entry
+        function deleteLog(logId) {
+            if (confirm('Are you sure you want to delete this log entry?')) {
+                data.logs = data.logs.filter(log => log.id !== logId);
+                
+                // Check if we're in search mode or daily view
+                const searchValue = document.getElementById('studentSearch').value.trim();
+                if (searchValue) {
+                    searchStudentLogs();
+                } else {
+                    renderLogs();
+                }
+                
+                // Update student view in case status changed
+                renderStudentGrid();
+            }
         }
         // Show add student modal
         function showAddStudentModal() {
