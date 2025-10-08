@@ -332,6 +332,12 @@
                 <!-- Logs Tab -->
                 <div id="logs" class="tab-content active">
                     <h2>Today's Activity Log</h2>
+                    <div class="form-group">
+                        <input type="text" id="studentSearch" placeholder="Search student name..." style="max-width: 400px;">
+                        <button class="btn btn-primary" onclick="searchStudentLogs()">Search</button>
+                        <button class="btn btn-secondary" onclick="clearSearch()">Show Today's Logs</button>
+                    </div>
+                    <div id="searchResults"></div>
                     <div id="logsList"></div>
                 </div>
                 
@@ -525,6 +531,7 @@
             
             logsList.innerHTML = todayLogs.reverse().map(log => {
                 const time = new Date(log.timestamp).toLocaleTimeString();
+                const date = new Date(log.timestamp).toLocaleDateString();
                 const actionClass = log.action === 'in' ? 'check-in' : 'check-out';
                 const actionText = log.action === 'in' ? 'Checked In' : 'Checked Out';
                 
@@ -532,12 +539,97 @@
                     <div class="log-entry ${actionClass}">
                         <strong>${log.studentName}</strong> - ${actionText}<br>
                         Class: ${log.classType} (${log.duration}min - ¥${log.cost.toLocaleString()})<br>
-                        Time: ${time}
+                        Date: ${date} | Time: ${time}
                     </div>
                 `;
             }).join('');
         }
+        // Search student logs
+        function searchStudentLogs() {
+            const searchName = document.getElementById('studentSearch').value.trim().toLowerCase();
+            if (!searchName) {
+                alert('Please enter a student name');
+                return;
+            }
+            
+            const studentLogs = data.logs.filter(log => 
+                log.studentName.toLowerCase().includes(searchName)
+            );
+            
+            if (studentLogs.length === 0) {
+                document.getElementById('logsList').innerHTML = 
+                    '<div class="empty-state"><h3>No logs found for this student</h3></div>';
+                return;
+            }
+            
+            // Group by month
+            const logsByMonth = {};
+            studentLogs.forEach(log => {
+                const date = new Date(log.timestamp);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                
+                if (!logsByMonth[monthKey]) {
+                    logsByMonth[monthKey] = {
+                        monthName: monthName,
+                        logs: [],
+                        total: 0
+                    };
+                }
+                
+                // Only count check-ins for billing
+                if (log.action === 'in') {
+                    logsByMonth[monthKey].logs.push(log);
+                    logsByMonth[monthKey].total += log.cost;
+                }
+            });
+            
+            // Sort months (newest first)
+            const sortedMonths = Object.keys(logsByMonth).sort().reverse();
+            
+            let html = `<h3>Search Results for: ${searchName}</h3>`;
+            
+            sortedMonths.forEach(monthKey => {
+                const monthData = logsByMonth[monthKey];
+                const subtotal = monthData.total;
+                const tax = Math.round(subtotal * 0.1);
+                const totalWithTax = subtotal + tax;
+                
+                html += `
+                    <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h3 style="color: #667eea; margin-bottom: 15px;">${monthData.monthName}</h3>
+                `;
+                
+                monthData.logs.forEach(log => {
+                    const date = new Date(log.timestamp).toLocaleDateString();
+                    const time = new Date(log.timestamp).toLocaleTimeString();
+                    html += `
+                        <div class="log-entry check-in">
+                            <strong>${log.studentName}</strong> - Checked In<br>
+                            Class: ${log.classType} (${log.duration}min - ¥${log.cost.toLocaleString()})<br>
+                            Date: ${date} | Time: ${time}
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px; font-weight: 600;">
+                            Subtotal: ¥${subtotal.toLocaleString()}<br>
+                            Tax (10%): ¥${tax.toLocaleString()}<br>
+                            <span style="color: #667eea; font-size: 1.2em;">Total: ¥${totalWithTax.toLocaleString()}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('logsList').innerHTML = html;
+        }
         
+        // Clear search and show today's logs
+        function clearSearch() {
+            document.getElementById('studentSearch').value = '';
+            renderLogs();
+        }
         // Show add student modal
         function showAddStudentModal() {
             document.getElementById('studentName').value = '';
