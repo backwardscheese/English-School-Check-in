@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>McKay English School Check-in System</title>
+    <title>English School Check-in System</title>
     <style>
         * {
             margin: 0;
@@ -89,6 +89,7 @@
         
         .student-card.checked-in {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            animation: pulse 0.5s;
         }
         
         .student-card.checked-out {
@@ -368,7 +369,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📚 McKay English School 📚</h1>
+            <h1>📚 English School</h1>
             <p>Student Check-in System</p>
             <a href="#" class="teacher-login" onclick="showLoginModal(); return false;">Teacher Login</a>
         </div>
@@ -493,7 +494,6 @@
                 data.logs = logs;
                 
                 renderStudentGrid();
-                populateYearSelector();
             } catch (error) {
                 console.error('Error loading data:', error);
                 document.getElementById('studentGrid').innerHTML = 
@@ -519,9 +519,13 @@
             }
         }
         
-        function showTeacherPortal() {
+        async function showTeacherPortal() {
             document.getElementById('studentView').style.display = 'none';
             document.getElementById('teacherPortal').classList.add('active');
+            
+            await loadDataFromSheets();
+            populateYearSelector();
+            
             renderLogs();
             renderStudentsList();
         }
@@ -532,7 +536,7 @@
             renderStudentGrid();
         }
         
-        async function switchTeacherTab(tabName) {
+        function switchTeacherTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
@@ -541,11 +545,7 @@
             
             if (tabName === 'logs') renderLogs();
             if (tabName === 'students') renderStudentsList();
-            if (tabName === 'financial') {
-                // Reload data from Google Sheets before showing financial report
-                await loadDataFromSheets();
-                renderFinancialReport();
-            }
+            if (tabName === 'financial') renderFinancialReport();
         }
         
         function renderStudentGrid() {
@@ -661,203 +661,7 @@
             const logsByMonth = {};
             studentLogs.forEach(log => {
                 const date = new Date(log.timestamp);
-                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-                
-                if (!logsByMonth[monthKey]) {
-                    logsByMonth[monthKey] = {
-                        monthName: monthName,
-                        logs: [],
-                        total: 0
-                    };
-                }
-                
-                if (log.action === 'in') {
-                    logsByMonth[monthKey].logs.push(log);
-                    logsByMonth[monthKey].total += log.cost;
-                }
-            });
-            
-            const sortedMonths = Object.keys(logsByMonth).sort().reverse();
-            
-            let html = `<h3>Search Results for: ${searchName}</h3>`;
-            
-            sortedMonths.forEach(monthKey => {
-                const monthData = logsByMonth[monthKey];
-                const subtotal = monthData.total;
-                const tax = Math.round(subtotal * 0.1);
-                const totalWithTax = subtotal + tax;
-                
-                html += `
-                    <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
-                        <h3 style="color: #667eea; margin-bottom: 15px;">${monthData.monthName}</h3>
-                `;
-                
-                monthData.logs.forEach(log => {
-                    const date = new Date(log.timestamp).toLocaleDateString();
-                    const time = new Date(log.timestamp).toLocaleTimeString();
-                    html += `
-                        <div class="log-entry check-in">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div>
-                                    <strong>${log.studentName}</strong> - Checked In<br>
-                                    Class: ${log.classType} (${log.duration}min - ¥${log.cost.toLocaleString()})<br>
-                                    Date: ${date} | Time: ${time}
-                                </div>
-                                <button class="btn btn-danger btn-small" onclick="deleteLog(${log.id})">Delete</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px; font-weight: 600;">
-                            Subtotal: ¥${subtotal.toLocaleString()}<br>
-                            Tax (10%): ¥${tax.toLocaleString()}<br>
-                            <span style="color: #667eea; font-size: 1.2em;">Total: ¥${totalWithTax.toLocaleString()}</span>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('logsList').innerHTML = html;
-        }
-        
-        function clearSearch() {
-            document.getElementById('studentSearch').value = '';
-            renderLogs();
-        }
-        
-        async function deleteLog(logId) {
-            if (confirm('Are you sure you want to delete this log entry?')) {
-                try {
-                    const response = await fetch(`${SHEET_API_URL}?action=deleteLog&id=${logId}`);
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        data.logs = data.logs.filter(log => log.id !== logId);
-                        
-                        const searchValue = document.getElementById('studentSearch').value.trim();
-                        if (searchValue) {
-                            searchStudentLogs();
-                        } else {
-                            renderLogs();
-                        }
-                        
-                        renderStudentGrid();
-                    }
-                } catch (error) {
-                    console.error('Error deleting log:', error);
-                    alert('Error deleting log. Please try again.');
-                }
-            }
-        }
-        
-        function showAddStudentModal() {
-            document.getElementById('studentName').value = '';
-            document.getElementById('studentClass').value = 'ES';
-            document.getElementById('addStudentModal').classList.add('active');
-        }
-        
-        async function saveStudent() {
-            const name = document.getElementById('studentName').value.trim();
-            const classType = document.getElementById('studentClass').value;
-            
-            if (!name) {
-                alert('Please enter a student name');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${SHEET_API_URL}?action=addStudent&name=${encodeURIComponent(name)}&classType=${classType}`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    data.students.push({
-                        id: result.id,
-                        name: name,
-                        classType: classType
-                    });
-                    
-                    closeModal('addStudentModal');
-                    renderStudentsList();
-                    alert('Student added successfully!');
-                }
-            } catch (error) {
-                console.error('Error adding student:', error);
-                alert('Error adding student. Please try again.');
-            }
-        }
-        
-        function renderStudentsList() {
-            const list = document.getElementById('studentsList');
-            if (data.students.length === 0) {
-                list.innerHTML = '<div class="empty-state"><h3>No students yet</h3></div>';
-                return;
-            }
-            
-            list.innerHTML = data.students.map(student => `
-                <div class="student-item">
-                    <div>
-                        <strong>${student.name}</strong><br>
-                        <small>Class: ${student.classType} (${lessonTypes[student.classType].duration}min - ¥${lessonTypes[student.classType].cost.toLocaleString()})</small>
-                    </div>
-                    <div>
-                        <button class="btn btn-danger btn-small" onclick="deleteStudent(${student.id})">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        async function deleteStudent(id) {
-            if (confirm('Are you sure you want to delete this student?')) {
-                try {
-                    const response = await fetch(`${SHEET_API_URL}?action=deleteStudent&id=${id}`);
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        data.students = data.students.filter(s => s.id !== id);
-                        renderStudentsList();
-                    }
-                } catch (error) {
-                    console.error('Error deleting student:', error);
-                    alert('Error deleting student. Please try again.');
-                }
-            }
-        }
-
-        function populateYearSelector() {
-            const yearSelector = document.getElementById('yearSelector');
-            const currentYear = new Date().getFullYear();
-            const years = new Set();
-            
-            years.add(currentYear);
-            
-            data.logs.forEach(log => {
-                const year = new Date(log.timestamp).getFullYear();
-                years.add(year);
-            });
-            
-            const sortedYears = Array.from(years).sort((a, b) => b - a);
-            
-            yearSelector.innerHTML = sortedYears.map(year => 
-                `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`
-            ).join('');
-        }
-
-        function renderFinancialReport() {
-            const selectedYear = parseInt(document.getElementById('yearSelector').value);
-            const tbody = document.getElementById('financialTableBody');
-            
-            const months = [
-                'January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'
-            ];
-            
-            let yearTotal = 0;
-            let yearCheckIns = 0;
-            
-            const monthlyData = months.map((monthName, index) => {
+                const monthlyData = months.map((monthName, index) => {
                 const monthLogs = data.logs.filter(log => {
                     const logDate = new Date(log.timestamp);
                     return logDate.getFullYear() === selectedYear && 
