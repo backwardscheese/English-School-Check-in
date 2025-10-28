@@ -45,20 +45,19 @@
             position: absolute;
             top: 20px;
             right: 30px;
-            background: #bbbbbb;
-            color: #000000;
+            background: rgba(255,255,255,0.2);
+            color: white;
             padding: 10px 20px;
             border-radius: 8px;
             text-decoration: none;
             font-size: 0.9em;
             font-weight: 600;
             transition: all 0.3s;
-            border: 2px solid #bbbbbb;
+            border: 2px solid rgba(255,255,255,0.3);
         }
         
         .teacher-login:hover {
-            background: white;
-            color: #000000;
+            background: rgba(255,255,255,0.3);
         }
         
         .main-layout {
@@ -69,8 +68,8 @@
         .keypad-section {
             flex: 0 0 400px;
             padding: 40px;
-            background: #f9f5ee;
-            border-right: 2px solid #bbbbbb;
+            background: #f8f9fa;
+            border-right: 2px solid #dee2e6;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -126,7 +125,7 @@
         }
         
         .key:hover {
-            background: #000000;
+            background: #667eea;
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -137,26 +136,25 @@
         }
         
         .key.special {
-            background: #bbbbbb;
-            border-color: #bbbbbb;
-            color: #000000;
-        }
-        
-        .key.special:hover {
-            background: #999999;
-            border-color: #999999;
+            background: #6c757d;
+            border-color: #6c757d;
             color: white;
         }
         
+        .key.special:hover {
+            background: #5a6268;
+            border-color: #5a6268;
+        }
+        
         .key.enter {
-            background: #000000;
-            border-color: #000000;
+            background: #28a745;
+            border-color: #28a745;
             color: white;
         }
         
         .key.enter:hover {
-            background: #333333;
-            border-color: #333333;
+            background: #218838;
+            border-color: #218838;
         }
         
         .cards-section {
@@ -179,14 +177,13 @@
         }
         
         .student-card {
-            background: #000000;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
             padding: 30px;
             border-radius: 15px;
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border: 2px solid #000000;
         }
         
         .student-card:hover {
@@ -243,8 +240,8 @@
         
         .tabs {
             display: flex;
-            background: #f9f5ee;
-            border-bottom: 2px solid #bbbbbb;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
             margin-bottom: 30px;
         }
         
@@ -261,13 +258,13 @@
         }
         
         .tab:hover {
-            background: #bbbbbb;
+            background: #e9ecef;
         }
         
         .tab.active {
             background: white;
-            color: #000000;
-            border-bottom: 3px solid #000000;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
         }
         
         .tab-content {
@@ -289,22 +286,18 @@
         }
         
         .btn-primary {
-            background: #000000;
+            background: #667eea;
             color: white;
         }
         
         .btn-primary:hover {
-            background: #333333;
+            background: #5568d3;
         }
         
         .btn-secondary {
-            background: #bbbbbb;
-            color: #000000;
+            background: #6c757d;
+            color: white;
             margin-left: 10px;
-        }
-        
-        .btn-secondary:hover {
-            background: #999999;
         }
         
         .btn-danger {
@@ -375,7 +368,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid #bbbbbb;
         }
         
         .log-entry {
@@ -383,7 +375,7 @@
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 8px;
-            border-left: 4px solid #000000;
+            border-left: 4px solid #667eea;
         }
         
         .log-entry.check-in {
