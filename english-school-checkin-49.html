@@ -1037,6 +1037,7 @@
         
         async function saveStudent() {
             const name = document.getElementById('studentName').value.trim();
+            const familyName = document.getElementById('studentFamily').value.trim();
             const classType = document.getElementById('studentClass').value;
             
             if (!name) {
@@ -1044,14 +1045,21 @@
                 return;
             }
             
+            const url = `${SHEET_API_URL}?action=addStudent&name=${encodeURIComponent(name)}&familyName=${encodeURIComponent(familyName)}&classType=${classType}`;
+            console.log('Sending request to:', url);
+            console.log('Family name value:', familyName);
+            
             try {
-                const response = await fetch(`${SHEET_API_URL}?action=addStudent&name=${encodeURIComponent(name)}&classType=${classType}`);
+                const response = await fetch(url);
                 const result = await response.json();
+                
+                console.log('Response:', result);
                 
                 if (result.success) {
                     data.students.push({
                         id: result.id,
                         name: name,
+                        familyName: familyName,
                         classType: classType
                     });
                     
