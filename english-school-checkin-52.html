@@ -551,6 +551,27 @@
 			background: #dc3545;
 			color: white;
 		}
+
+		.status-not-sent {
+		    background: #ffc107;
+		    color: #000;
+		}
+		
+		.status-invoice-sent {
+		    background: #17a2b8;
+		    color: white;
+		}
+		
+		.status-paid {
+		    background: #28a745;
+		    color: white;
+		}
+		
+		.invoice-info {
+		    font-size: 0.9em;
+		    color: #666;
+		    margin-top: 5px;
+		}
     </style>
 </head>
 <body>
@@ -632,50 +653,50 @@
             </div>
 			
 			<div id="billing" class="tab-content">
-				<h2>Billing & Invoices</h2>
-				
-				<div class="billing-controls">
-					<div class="billing-row">
-						<label>Year:</label>
-						<select id="billingYear"></select>
-						<label style="margin-left: 20px;">Month:</label>
-						<select id="billingMonth">
-							<option value="1">January</option>
-							<option value="2">February</option>
-							<option value="3">March</option>
-							<option value="4">April</option>
-							<option value="5">May</option>
-							<option value="6">June</option>
-							<option value="7">July</option>
-							<option value="8">August</option>
-							<option value="9">September</option>
-							<option value="10">October</option>
-							<option value="11">November</option>
-							<option value="12">December</option>
-						</select>
-						<button class="btn btn-primary" onclick="billAllStudents()" style="margin-left: auto;">
-							📧 Bill All Students/Families
-						</button>
-					</div>
-				</div>
-				
-				<div class="billing-section">
-					<h3>Family Billing</h3>
-					<div class="billing-row">
-						<label>Family:</label>
-						<select id="familySelect" style="flex: 1; max-width: 300px;">
-							<option value="">Select a family...</option>
-						</select>
-						<button class="btn btn-primary" onclick="billSelectedFamily()">
-							Send Family Invoice
-						</button>
-					</div>
-				</div>
-				
-				<div class="billing-section">
-					<h3>Individual Student Billing</h3>
-					<div id="billingStudentsList"></div>
-				</div>
+			    <h2>Billing & Invoices</h2>
+			    
+			    <div class="billing-controls">
+			        <div class="billing-row">
+			            <label>Year:</label>
+			            <select id="billingYear" onchange="loadInvoiceStatuses()"></select>
+			            <label style="margin-left: 20px;">Month:</label>
+			            <select id="billingMonth" onchange="loadInvoiceStatuses()">
+			                <option value="1">January</option>
+			                <option value="2">February</option>
+			                <option value="3">March</option>
+			                <option value="4">April</option>
+			                <option value="5">May</option>
+			                <option value="6">June</option>
+			                <option value="7">July</option>
+			                <option value="8">August</option>
+			                <option value="9">September</option>
+			                <option value="10">October</option>
+			                <option value="11">November</option>
+			                <option value="12">December</option>
+			            </select>
+			            <button class="btn btn-primary" onclick="billAllStudents()" style="margin-left: auto;">
+			                📧 Bill All Students/Families
+			            </button>
+			        </div>
+			    </div>
+			    
+			    <div class="billing-section">
+			        <h3>Family Billing</h3>
+			        <div class="billing-row">
+			            <label>Family:</label>
+			            <select id="familySelect" style="flex: 1; max-width: 300px;">
+			                <option value="">Select a family...</option>
+			            </select>
+			            <button class="btn btn-primary" onclick="billSelectedFamily()">
+			                Send Family Invoice
+			            </button>
+			        </div>
+			    </div>
+			    
+			    <div class="billing-section">
+			        <h3>Payment Tracking</h3>
+			        <div id="billingStudentsList"></div>
+			    </div>
 			</div>
 			
             <div id="financial" class="tab-content">
@@ -1334,235 +1355,348 @@
             
             tbody.innerHTML = html;
         }
-        
+
 		// Billing Functions
 
-		function populateBillingSelectors() {
-			// Populate year selector
-			const yearSelect = document.getElementById('billingYear');
-			const currentYear = new Date().getFullYear();
-			const years = [currentYear - 1, currentYear, currentYear + 1];
-			
-			yearSelect.innerHTML = years.map(year => 
-				`<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`
-			).join('');
-			
-			// Set default month to last month
-			const lastMonth = new Date().getMonth(); // 0-11, current month - 1
-			document.getElementById('billingMonth').value = lastMonth === 0 ? 12 : lastMonth;
-			if (lastMonth === 0) {
-				document.getElementById('billingYear').value = currentYear - 1;
-			}
-			
-			// Populate family selector
-			const families = new Set();
-			data.students.forEach(student => {
-				if (student.familyName) {
-					families.add(student.familyName);
-				}
-			});
-			
-			const familySelect = document.getElementById('familySelect');
-			familySelect.innerHTML = '<option value="">Select a family...</option>' +
-				Array.from(families).sort().map(family => 
-					`<option value="${family}">${family}</option>`
-				).join('');
-			
-			// Render students list
-			renderBillingStudentsList();
+		let currentInvoices = [];
+		
+		async function populateBillingSelectors() {
+		    // Populate year selector
+		    const yearSelect = document.getElementById('billingYear');
+		    const currentYear = new Date().getFullYear();
+		    const years = [currentYear - 1, currentYear, currentYear + 1];
+		    
+		    yearSelect.innerHTML = years.map(year => 
+		        `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`
+		    ).join('');
+		    
+		    // Set default month to last month
+		    const lastMonth = new Date().getMonth(); // 0-11, current month - 1
+		    document.getElementById('billingMonth').value = lastMonth === 0 ? 12 : lastMonth;
+		    if (lastMonth === 0) {
+		        document.getElementById('billingYear').value = currentYear - 1;
+		    }
+		    
+		    // Populate family selector
+		    const families = new Set();
+		    data.students.forEach(student => {
+		        if (student.familyName) {
+		            families.add(student.familyName);
+		        }
+		    });
+		    
+		    const familySelect = document.getElementById('familySelect');
+		    familySelect.innerHTML = '<option value="">Select a family...</option>' +
+		        Array.from(families).sort().map(family => 
+		            `<option value="${family}">${family}</option>`
+		        ).join('');
+		    
+		    // Load invoice statuses
+		    await loadInvoiceStatuses();
 		}
-
+		
+		async function loadInvoiceStatuses() {
+		    const year = parseInt(document.getElementById('billingYear').value);
+		    const month = parseInt(document.getElementById('billingMonth').value);
+		    
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=getAllInvoices&year=${year}&month=${month}`);
+		        currentInvoices = await response.json();
+		        renderBillingStudentsList();
+		    } catch (error) {
+		        console.error('Error loading invoices:', error);
+		        renderBillingStudentsList();
+		    }
+		}
+		
+		function getInvoiceForStudent(studentId) {
+		    return currentInvoices.find(inv => inv.studentId === studentId);
+		}
+		
 		function renderBillingStudentsList() {
-			const list = document.getElementById('billingStudentsList');
-			
-			if (data.students.length === 0) {
-				list.innerHTML = '<div class="empty-state"><h3>No students</h3></div>';
-				return;
-			}
-			
-			list.innerHTML = data.students.map(student => {
-				const hasLineId = student.lineUserId && student.lineUserId.trim() !== '';
-				const statusBadge = hasLineId 
-					? '<span class="status-badge status-registered">LINE Registered</span>'
-					: '<span class="status-badge status-not-registered">Manual Billing Required</span>';
-				
-				return `
-					<div class="student-item">
-						<div>
-							<strong>${student.name}</strong> (PIN: ${String(student.id).padStart(3, '0')})
-							${statusBadge}
-							${student.familyName ? `<br><small style="color: #666;">Family: ${student.familyName}</small>` : ''}
-						</div>
-						${hasLineId ? `
-							<div>
-								<button class="btn btn-primary btn-small" onclick="billIndividualStudent(${student.id})">
-									Send Invoice
-								</button>
-							</div>
-						` : `
-							<div>
-								<button class="btn btn-secondary btn-small" onclick="generatePrintableInvoice(${student.id})">
-									📄 View/Print Invoice
-								</button>
-							</div>
-						`}
-					</div>
-				`;
-			}).join('');
+		    const list = document.getElementById('billingStudentsList');
+		    
+		    if (data.students.length === 0) {
+		        list.innerHTML = '<div class="empty-state"><h3>No students</h3></div>';
+		        return;
+		    }
+		    
+		    // Group by families and individuals
+		    const families = {};
+		    const individuals = [];
+		    
+		    data.students.forEach(student => {
+		        if (student.familyName) {
+		            if (!families[student.familyName]) {
+		                families[student.familyName] = [];
+		            }
+		            families[student.familyName].push(student);
+		        } else {
+		            individuals.push(student);
+		        }
+		    });
+		    
+		    let html = '';
+		    
+		    // Render families
+		    Object.keys(families).sort().forEach(familyName => {
+		        const familyMembers = families[familyName];
+		        const primaryMember = familyMembers[0];
+		        const invoice = getInvoiceForStudent(primaryMember.id);
+		        const hasLineId = primaryMember.lineUserId && primaryMember.lineUserId.trim() !== '';
+		        
+		        let statusBadge, actionButton;
+		        
+		        if (!hasLineId) {
+		            statusBadge = '<span class="status-badge status-not-registered">Manual Billing Required</span>';
+		            actionButton = `<button class="btn btn-secondary btn-small" onclick="generatePrintableInvoice(${primaryMember.id})">📄 View/Print Invoice</button>`;
+		        } else if (!invoice) {
+		            statusBadge = '<span class="status-badge status-not-sent">Not Sent</span>';
+		            actionButton = `<button class="btn btn-primary btn-small" onclick="billSelectedFamilyDirect('${familyName}')">Send Invoice</button>`;
+		        } else if (invoice.paymentStatus === 'Paid') {
+		            const paidDate = new Date(invoice.datePaid).toLocaleDateString();
+		            statusBadge = `<span class="status-badge status-paid">✓ Paid</span>`;
+		            actionButton = `<div class="invoice-info">Paid on ${paidDate}</div>`;
+		        } else {
+		            const sentDate = new Date(invoice.dateSent).toLocaleDateString();
+		            statusBadge = `<span class="status-badge status-invoice-sent">Invoice Sent</span>`;
+		            actionButton = `
+		                <div class="invoice-info">Sent: ${sentDate}</div>
+		                <button class="btn btn-primary btn-small" onclick="markAsPaid(${invoice.id})">Mark as Paid</button>
+		            `;
+		        }
+		        
+		        html += `
+		            <div class="student-item">
+		                <div>
+		                    <strong>${familyName} (Family)</strong>
+		                    ${statusBadge}
+		                    <br><small style="color: #666;">Members: ${familyMembers.map(m => m.name).join(', ')}</small>
+		                </div>
+		                <div style="text-align: right;">
+		                    ${actionButton}
+		                </div>
+		            </div>
+		        `;
+		    });
+		    
+		    // Render individuals
+		    individuals.forEach(student => {
+		        const invoice = getInvoiceForStudent(student.id);
+		        const hasLineId = student.lineUserId && student.lineUserId.trim() !== '';
+		        
+		        let statusBadge, actionButton;
+		        
+		        if (!hasLineId) {
+		            statusBadge = '<span class="status-badge status-not-registered">Manual Billing Required</span>';
+		            actionButton = `<button class="btn btn-secondary btn-small" onclick="generatePrintableInvoice(${student.id})">📄 View/Print Invoice</button>`;
+		        } else if (!invoice) {
+		            statusBadge = '<span class="status-badge status-not-sent">Not Sent</span>';
+		            actionButton = `<button class="btn btn-primary btn-small" onclick="billIndividualStudent(${student.id})">Send Invoice</button>`;
+		        } else if (invoice.paymentStatus === 'Paid') {
+		            const paidDate = new Date(invoice.datePaid).toLocaleDateString();
+		            statusBadge = `<span class="status-badge status-paid">✓ Paid</span>`;
+		            actionButton = `<div class="invoice-info">Paid on ${paidDate}</div>`;
+		        } else {
+		            const sentDate = new Date(invoice.dateSent).toLocaleDateString();
+		            statusBadge = `<span class="status-badge status-invoice-sent">Invoice Sent</span>`;
+		            actionButton = `
+		                <div class="invoice-info">Sent: ${sentDate}</div>
+		                <button class="btn btn-primary btn-small" onclick="markAsPaid(${invoice.id})">Mark as Paid</button>
+		            `;
+		        }
+		        
+		        html += `
+		            <div class="student-item">
+		                <div>
+		                    <strong>${student.name}</strong> (PIN: ${String(student.id).padStart(3, '0')})
+		                    ${statusBadge}
+		                </div>
+		                <div style="text-align: right;">
+		                    ${actionButton}
+		                </div>
+		            </div>
+		        `;
+		    });
+		    
+		    list.innerHTML = html;
 		}
 		
 		function generatePrintableInvoice(studentId) {
-			const student = data.students.find(s => s.id === studentId);
-			const year = parseInt(document.getElementById('billingYear').value);
-			const month = parseInt(document.getElementById('billingMonth').value);
-			
-			// Open invoice sheet in new window
-			const invoiceSheetUrl = 'https://docs.google.com/spreadsheets/d/1b4h33u9fUhqi498eZydgj4Jrpz0ThbIQwLJPXTnyJww/edit?pli=1&gid=1129249546#gid=1129249546'; // Your actual sheet URL
-			const url = `${invoiceSheetUrl}#gid=INVOICE_SHEET_GID&range=A1`; // Link to Invoice sheet
-			
-			// Or better - generate invoice text to copy/paste
-			showInvoicePreview(studentId, year, month);
+		    const student = data.students.find(s => s.id === studentId);
+		    const year = parseInt(document.getElementById('billingYear').value);
+		    const month = parseInt(document.getElementById('billingMonth').value);
+		    
+		    showInvoicePreview(studentId, year, month);
 		}
-
+		
 		async function showInvoicePreview(studentId, year, month) {
-			const student = data.students.find(s => s.id === studentId);
-			
-			// Get logs for this student/month
-			const monthLogs = data.logs.filter(log => {
-				const logDate = new Date(log.timestamp);
-				return log.studentId === studentId && 
-					   logDate.getFullYear() === year &&
-					   logDate.getMonth() + 1 === month &&
-					   log.action === 'Check In';
-			});
-			
-			if (monthLogs.length === 0) {
-				alert('No lessons found for this student in ' + getMonthName(month) + ' ' + year);
-				return;
-			}
-			
-			const subtotal = monthLogs.reduce((sum, log) => sum + log.cost, 0);
-			const tax = Math.round(subtotal * 0.1);
-			const total = subtotal + tax;
-			
-			let nextMonth = month + 1;
-			let nextYear = year;
-			if (nextMonth > 12) {
-				nextMonth = 1;
-				nextYear++;
-			}
-			
-			// Create invoice text
-			const invoiceText = `【マケイ英語教室】
-			${year}年${month}月分の請求書
-
-			生徒名: ${student.name}
-			${student.familyName ? '(' + student.familyName + ')' : ''}
-
-			レッスン回数: ${monthLogs.length}回
-			クラス: ${student.classType}
-
-			小計: ¥${subtotal.toLocaleString()}
-			消費税(10%): ¥${tax.toLocaleString()}
-			━━━━━━━━━━━━━━━
-			合計: ¥${total.toLocaleString()}
-
-			お支払期限: ${nextYear}年${nextMonth}月末日
-
-			お支払いをよろしくお願いいたします。`;
-
-			// Show in modal or copy to clipboard
-			if (confirm('Copy invoice text to clipboard?\n\n(You can then paste into SMS/Instagram)')) {
-				navigator.clipboard.writeText(invoiceText).then(() => {
-					alert('✓ Invoice copied to clipboard!\n\nYou can now paste it into SMS or Instagram.');
-				}).catch(() => {
-					// Fallback: show in alert
-					prompt('Copy this invoice text:', invoiceText);
-				});
-			}
+		    const student = data.students.find(s => s.id === studentId);
+		    
+		    // Get logs for this student/month
+		    const monthLogs = data.logs.filter(log => {
+		        const logDate = new Date(log.timestamp);
+		        return log.studentId === studentId && 
+		               logDate.getFullYear() === year &&
+		               logDate.getMonth() + 1 === month &&
+		               log.action === 'Check In';
+		    });
+		    
+		    if (monthLogs.length === 0) {
+		        alert('No lessons found for this student in ' + getMonthName(month) + ' ' + year);
+		        return;
+		    }
+		    
+		    const subtotal = monthLogs.reduce((sum, log) => sum + log.cost, 0);
+		    const tax = Math.round(subtotal * 0.1);
+		    const total = subtotal + tax;
+		    
+		    let nextMonth = month + 1;
+		    let nextYear = year;
+		    if (nextMonth > 12) {
+		        nextMonth = 1;
+		        nextYear++;
+		    }
+		    
+		    // Create invoice text
+		    const invoiceText = `【マケイ英語教室】
+		${year}年${month}月分の請求書
+		
+		生徒名: ${student.name}
+		${student.familyName ? '(' + student.familyName + ')' : ''}
+		
+		レッスン回数: ${monthLogs.length}回
+		クラス: ${student.classType}
+		
+		小計: ¥${subtotal.toLocaleString()}
+		消費税(10%): ¥${tax.toLocaleString()}
+		───────────────
+		合計: ¥${total.toLocaleString()}
+		
+		お支払期限: ${nextYear}年${nextMonth}月末日
+		
+		お支払いをよろしくお願いいたします。`;
+		
+		    // Show in modal or copy to clipboard
+		    if (confirm('Copy invoice text to clipboard?\n\n(You can then paste into SMS/Instagram)')) {
+		        navigator.clipboard.writeText(invoiceText).then(() => {
+		            alert('✓ Invoice copied to clipboard!\n\nYou can now paste it into SMS or Instagram.');
+		        }).catch(() => {
+		            // Fallback: show in alert
+		            prompt('Copy this invoice text:', invoiceText);
+		        });
+		    }
 		}
-
+		
 		async function billAllStudents() {
-			const year = parseInt(document.getElementById('billingYear').value);
-			const month = parseInt(document.getElementById('billingMonth').value);
-			
-			if (!confirm(`Send invoices to ALL students/families for ${getMonthName(month)} ${year}?\n\nThis will send LINE messages to everyone with LINE registered.`)) {
-				return;
-			}
-			
-			try {
-				const response = await fetch(`${SHEET_API_URL}?action=billAll&year=${year}&month=${month}`);
-				const result = await response.json();
-				
-				if (result.success) {
-					alert(`Billing complete!\n\nSent: ${result.sent}\nFailed: ${result.failed}\n\nCheck the Apps Script logs for details.`);
-				} else {
-					alert('Error sending invoices. Check Apps Script logs.');
-				}
-			} catch (error) {
-				console.error('Error:', error);
-				alert('Error sending invoices: ' + error);
-			}
+		    const year = parseInt(document.getElementById('billingYear').value);
+		    const month = parseInt(document.getElementById('billingMonth').value);
+		    
+		    if (!confirm(`Send invoices to ALL students/families for ${getMonthName(month)} ${year}?\n\nThis will send LINE messages to everyone with LINE registered.`)) {
+		        return;
+		    }
+		    
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=billAll&year=${year}&month=${month}`);
+		        const result = await response.json();
+		        
+		        if (result.success) {
+		            alert(`Billing complete!\n\nSent: ${result.sent}\nFailed: ${result.failed}\n\nCheck the Apps Script logs for details.`);
+		            await loadInvoiceStatuses(); // Reload to show updated statuses
+		        } else {
+		            alert('Error sending invoices. Check Apps Script logs.');
+		        }
+		    } catch (error) {
+		        console.error('Error:', error);
+		        alert('Error sending invoices: ' + error);
+		    }
 		}
-
+		
 		async function billSelectedFamily() {
-			const familyName = document.getElementById('familySelect').value;
-			
-			if (!familyName) {
-				alert('Please select a family');
-				return;
-			}
-			
-			const year = parseInt(document.getElementById('billingYear').value);
-			const month = parseInt(document.getElementById('billingMonth').value);
-			
-			if (!confirm(`Send invoice to ${familyName} for ${getMonthName(month)} ${year}?`)) {
-				return;
-			}
-			
-			try {
-				const response = await fetch(`${SHEET_API_URL}?action=billFamily&familyName=${encodeURIComponent(familyName)}&year=${year}&month=${month}`);
-				const result = await response.json();
-				
-				if (result.success) {
-					alert(`Invoice sent to ${familyName}!`);
-				} else {
-					alert('Error: ' + (result.error || 'Failed to send invoice'));
-				}
-			} catch (error) {
-				console.error('Error:', error);
-				alert('Error sending invoice: ' + error);
-			}
+		    const familyName = document.getElementById('familySelect').value);
+		    
+		    if (!familyName) {
+		        alert('Please select a family');
+		        return;
+		    }
+		    
+		    await billSelectedFamilyDirect(familyName);
 		}
-
+		
+		async function billSelectedFamilyDirect(familyName) {
+		    const year = parseInt(document.getElementById('billingYear').value);
+		    const month = parseInt(document.getElementById('billingMonth').value);
+		    
+		    if (!confirm(`Send invoice to ${familyName} for ${getMonthName(month)} ${year}?`)) {
+		        return;
+		    }
+		    
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=billFamily&familyName=${encodeURIComponent(familyName)}&year=${year}&month=${month}`);
+		        const result = await response.json();
+		        
+		        if (result.success) {
+		            alert(`Invoice sent to ${familyName}!`);
+		            await loadInvoiceStatuses(); // Reload to show updated statuses
+		        } else {
+		            alert('Error: ' + (result.error || 'Failed to send invoice'));
+		        }
+		    } catch (error) {
+		        console.error('Error:', error);
+		        alert('Error sending invoice: ' + error);
+		    }
+		}
+		
 		async function billIndividualStudent(studentId) {
-			const student = data.students.find(s => s.id === studentId);
-			const year = parseInt(document.getElementById('billingYear').value);
-			const month = parseInt(document.getElementById('billingMonth').value);
-			
-			if (!confirm(`Send invoice to ${student.name} for ${getMonthName(month)} ${year}?`)) {
-				return;
-			}
-			
-			try {
-				const response = await fetch(`${SHEET_API_URL}?action=billStudent&studentId=${studentId}&year=${year}&month=${month}`);
-				const result = await response.json();
-				
-				if (result.success) {
-					alert(`Invoice sent to ${student.name}!`);
-				} else {
-					alert('Error: ' + (result.error || 'Failed to send invoice'));
-				}
-			} catch (error) {
-				console.error('Error:', error);
-				alert('Error sending invoice: ' + error);
-			}
+		    const student = data.students.find(s => s.id === studentId);
+		    const year = parseInt(document.getElementById('billingYear').value);
+		    const month = parseInt(document.getElementById('billingMonth').value);
+		    
+		    if (!confirm(`Send invoice to ${student.name} for ${getMonthName(month)} ${year}?`)) {
+		        return;
+		    }
+		    
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=billStudent&studentId=${studentId}&year=${year}&month=${month}`);
+		        const result = await response.json();
+		        
+		        if (result.success) {
+		            alert(`Invoice sent to ${student.name}!`);
+		            await loadInvoiceStatuses(); // Reload to show updated statuses
+		        } else {
+		            alert('Error: ' + (result.error || 'Failed to send invoice'));
+		        }
+		    } catch (error) {
+		        console.error('Error:', error);
+		        alert('Error sending invoice: ' + error);
+		    }
 		}
-
+		
+		async function markAsPaid(invoiceId) {
+		    if (!confirm('Mark this invoice as paid?')) {
+		        return;
+		    }
+		    
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=markPaid&invoiceId=${invoiceId}`);
+		        const result = await response.json();
+		        
+		        if (result.success) {
+		            alert('✓ Invoice marked as paid!');
+		            await loadInvoiceStatuses(); // Reload to show updated statuses
+		        } else {
+		            alert('Error: ' + (result.error || 'Failed to mark as paid'));
+		        }
+		    } catch (error) {
+		        console.error('Error:', error);
+		        alert('Error marking as paid: ' + error);
+		    }
+		}
+		
 		function getMonthName(month) {
-			const months = ['January', 'February', 'March', 'April', 'May', 'June',
-						   'July', 'August', 'September', 'October', 'November', 'December'];
-			return months[month - 1];
+		    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+		                   'July', 'August', 'September', 'October', 'November', 'December'];
+		    return months[month - 1];
 		}
 		
         function closeModal(modalId) {
