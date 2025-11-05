@@ -1439,21 +1439,32 @@
 		    let html = '';
 		    
 		    // Render families
-		    Object.keys(families).sort().forEach(familyName => {
-		        const familyMembers = families[familyName];
-		        const primaryMember = familyMembers[0];
-		        const invoice = getInvoiceForStudent(primaryMember.id);
-		        const hasLineId = primaryMember.lineUserId && primaryMember.lineUserId.trim() !== '';
-		        
-		        let statusBadge, actionButton;
-		        
-		        if (!hasLineId) {
-		            statusBadge = '<span class="status-badge status-not-registered">Manual Billing Required</span>';
-		            actionButton = `<button class="btn btn-secondary btn-small" onclick="generatePrintableInvoice(${primaryMember.id})">📄 View/Print Invoice</button>`;
-		        } else if (!invoice) {
-		            statusBadge = '<span class="status-badge status-not-sent">Not Sent</span>';
-		            actionButton = `<button class="btn btn-primary btn-small" onclick="billSelectedFamilyDirect('${familyName}')">Send Invoice</button>`;
-		        } else if (invoice.paymentStatus === 'Paid') {
+			Object.keys(families).sort().forEach(familyName => {
+			    const familyMembers = families[familyName];
+			    const primaryMember = familyMembers[0];
+			    const invoice = getInvoiceForStudent(primaryMember.id);
+			    const hasLineId = primaryMember.lineUserId && primaryMember.lineUserId.trim() !== '';
+			    
+			    let statusBadge, actionButton;
+			    
+			    if (invoice && invoice.paymentStatus === 'Paid') {
+			        const paidDate = new Date(invoice.datePaid).toLocaleDateString();
+			        statusBadge = `<span class="status-badge status-paid">✓ Paid</span>`;
+			        actionButton = `<div class="invoice-info">Paid on ${paidDate}</div>`;
+			    } else if (invoice) {
+			        const sentDate = new Date(invoice.dateSent).toLocaleDateString();
+			        statusBadge = `<span class="status-badge status-invoice-sent">Invoice Sent</span>`;
+			        actionButton = `
+			            <div class="invoice-info">Sent: ${sentDate}</div>
+			            <button class="btn btn-primary btn-small" onclick="markAsPaid(${invoice.id})">Mark as Paid</button>
+			        `;
+			    } else if (!hasLineId) {
+			        statusBadge = '<span class="status-badge status-not-registered">Manual Billing Required</span>';
+			        actionButton = `<button class="btn btn-secondary btn-small" onclick="generatePrintableInvoice(${primaryMember.id})">📄 View/Print Invoice</button>`;
+			    } else {
+			        statusBadge = '<span class="status-badge status-not-sent">Not Sent</span>';
+			        actionButton = `<button class="btn btn-primary btn-small" onclick="billSelectedFamilyDirect('${familyName}')">Send Invoice</button>`;
+			    } else if (invoice.paymentStatus === 'Paid') {
 		            const paidDate = new Date(invoice.datePaid).toLocaleDateString();
 		            statusBadge = `<span class="status-badge status-paid">✓ Paid</span>`;
 		            actionButton = `<div class="invoice-info">Paid on ${paidDate}</div>`;
@@ -1481,16 +1492,27 @@
 		    });
 		    
 		    // Render individuals
-		    individuals.forEach(student => {
-		        const invoice = getInvoiceForStudent(student.id);
-		        const hasLineId = student.lineUserId && student.lineUserId.trim() !== '';
-		        
-		        let statusBadge, actionButton;
-		        
-		        if (!hasLineId) {
-		            statusBadge = '<span class="status-badge status-not-registered">Manual Billing Required</span>';
-		            actionButton = `<button class="btn btn-secondary btn-small" onclick="generatePrintableInvoice(${student.id})">📄 View/Print Invoice</button>`;
-		        } else if (!invoice) {
+			individuals.forEach(student => {
+			    const invoice = getInvoiceForStudent(student.id);
+			    const hasLineId = student.lineUserId && student.lineUserId.trim() !== '';
+			    
+			    let statusBadge, actionButton;
+			    
+			    if (invoice && invoice.paymentStatus === 'Paid') {
+			        const paidDate = new Date(invoice.datePaid).toLocaleDateString();
+			        statusBadge = `<span class="status-badge status-paid">✓ Paid</span>`;
+			        actionButton = `<div class="invoice-info">Paid on ${paidDate}</div>`;
+			    } else if (invoice) {
+			        const sentDate = new Date(invoice.dateSent).toLocaleDateString();
+			        statusBadge = `<span class="status-badge status-invoice-sent">Invoice Sent</span>`;
+			        actionButton = `
+			            <div class="invoice-info">Sent: ${sentDate}</div>
+			            <button class="btn btn-primary btn-small" onclick="markAsPaid(${invoice.id})">Mark as Paid</button>
+			        `;
+			    } else if (!hasLineId) {
+			        statusBadge = '<span class="status-badge status-not-registered">Manual Billing Required</span>';
+			        actionButton = `<button class="btn btn-secondary btn-small" onclick="generatePrintableInvoice(${student.id})">📄 View/Print Invoice</button>`;
+			    } else if (!invoice) {
 		            statusBadge = '<span class="status-badge status-not-sent">Not Sent</span>';
 		            actionButton = `<button class="btn btn-primary btn-small" onclick="billIndividualStudent(${student.id})">Send Invoice</button>`;
 		        } else if (invoice.paymentStatus === 'Paid') {
