@@ -1464,34 +1464,23 @@
 			    } else {
 			        statusBadge = '<span class="status-badge status-not-sent">Not Sent</span>';
 			        actionButton = `<button class="btn btn-primary btn-small" onclick="billSelectedFamilyDirect('${familyName}')">Send Invoice</button>`;
-			    } else if (invoice.paymentStatus === 'Paid') {
-		            const paidDate = new Date(invoice.datePaid).toLocaleDateString();
-		            statusBadge = `<span class="status-badge status-paid">✓ Paid</span>`;
-		            actionButton = `<div class="invoice-info">Paid on ${paidDate}</div>`;
-		        } else {
-		            const sentDate = new Date(invoice.dateSent).toLocaleDateString();
-		            statusBadge = `<span class="status-badge status-invoice-sent">Invoice Sent</span>`;
-		            actionButton = `
-		                <div class="invoice-info">Sent: ${sentDate}</div>
-		                <button class="btn btn-primary btn-small" onclick="markAsPaid(${invoice.id})">Mark as Paid</button>
-		            `;
-		        }
-		        
-		        html += `
-		            <div class="student-item">
-		                <div>
-		                    <strong>${familyName} (Family)</strong>
-		                    ${statusBadge}
-		                    <br><small style="color: #666;">Members: ${familyMembers.map(m => m.name).join(', ')}</small>
-		                </div>
-		                <div style="text-align: right;">
-		                    ${actionButton}
-		                </div>
-		            </div>
-		        `;
-		    });
-		    
-		    // Render individuals
+			    }
+			    
+			    html += `
+			        <div class="student-item">
+			            <div>
+			                <strong>${familyName} (Family)</strong>
+			                ${statusBadge}
+			                <br><small style="color: #666;">Members: ${familyMembers.map(m => m.name).join(', ')}</small>
+			            </div>
+			            <div style="text-align: right;">
+			                ${actionButton}
+			            </div>
+			        </div>
+			    `;
+			});
+			
+			// Render individuals
 			individuals.forEach(student => {
 			    const invoice = getInvoiceForStudent(student.id);
 			    const hasLineId = student.lineUserId && student.lineUserId.trim() !== '';
@@ -1512,37 +1501,25 @@
 			    } else if (!hasLineId) {
 			        statusBadge = '<span class="status-badge status-not-registered">Manual Billing Required</span>';
 			        actionButton = `<button class="btn btn-secondary btn-small" onclick="generatePrintableInvoice(${student.id})">📄 View/Print Invoice</button>`;
-			    } else if (!invoice) {
-		            statusBadge = '<span class="status-badge status-not-sent">Not Sent</span>';
-		            actionButton = `<button class="btn btn-primary btn-small" onclick="billIndividualStudent(${student.id})">Send Invoice</button>`;
-		        } else if (invoice.paymentStatus === 'Paid') {
-		            const paidDate = new Date(invoice.datePaid).toLocaleDateString();
-		            statusBadge = `<span class="status-badge status-paid">✓ Paid</span>`;
-		            actionButton = `<div class="invoice-info">Paid on ${paidDate}</div>`;
-		        } else {
-		            const sentDate = new Date(invoice.dateSent).toLocaleDateString();
-		            statusBadge = `<span class="status-badge status-invoice-sent">Invoice Sent</span>`;
-		            actionButton = `
-		                <div class="invoice-info">Sent: ${sentDate}</div>
-		                <button class="btn btn-primary btn-small" onclick="markAsPaid(${invoice.id})">Mark as Paid</button>
-		            `;
-		        }
-		        
-		        html += `
-		            <div class="student-item">
-		                <div>
-		                    <strong>${student.name}</strong> (PIN: ${String(student.id).padStart(3, '0')})
-		                    ${statusBadge}
-		                </div>
-		                <div style="text-align: right;">
-		                    ${actionButton}
-		                </div>
-		            </div>
-		        `;
-		    });
-		    
-		    list.innerHTML = html;
-		}
+			    } else {
+			        statusBadge = '<span class="status-badge status-not-sent">Not Sent</span>';
+			        actionButton = `<button class="btn btn-primary btn-small" onclick="billIndividualStudent(${student.id})">Send Invoice</button>`;
+			    }
+			    
+			    html += `
+			        <div class="student-item">
+			            <div>
+			                <strong>${student.name}</strong> (PIN: ${String(student.id).padStart(3, '0')})
+			                ${statusBadge}
+			            </div>
+			            <div style="text-align: right;">
+			                ${actionButton}
+			            </div>
+			        </div>
+			    `;
+			});
+			
+			list.innerHTML = html;
 		
 		function generatePrintableInvoice(studentId) {
 		    const student = data.students.find(s => s.id === studentId);
