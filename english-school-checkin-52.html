@@ -1579,12 +1579,39 @@
 		
 		    // Show in modal or copy to clipboard
 		    if (confirm('Copy invoice text to clipboard?\n\n(You can then paste into SMS/Instagram)')) {
-		        navigator.clipboard.writeText(invoiceText).then(() => {
+		        try {
+		            await navigator.clipboard.writeText(invoiceText);
+		            
+		            // Log the manual invoice to the sheet
+		            await logManualInvoice(studentId, student.name, student.familyName, year, month, total);
+		            
 		            alert('✓ Invoice copied to clipboard!\n\nYou can now paste it into SMS or Instagram.');
-		        }).catch(() => {
+		            
+		            // Reload invoice statuses to show "Invoice Sent"
+		            await loadInvoiceStatuses();
+		        } catch (error) {
+		            console.error('Error copying:', error);
 		            // Fallback: show in alert
-		            prompt('Copy this invoice text:', invoiceText);
-		        });
+		            const copied = prompt('Copy this invoice text:', invoiceText);
+		            if (copied !== null) {
+		                // If user interacted with prompt, log the invoice
+		                await logManualInvoice(studentId, student.name, student.familyName, year, month, total);
+		                await loadInvoiceStatuses();
+		            }
+		        }
+		    }
+		}
+
+		async function logManualInvoice(studentId, studentName, familyName, year, month, amount) {
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=logManualInvoice&studentId=${studentId}&studentName=${encodeURIComponent(studentName)}&familyName=${encodeURIComponent(familyName || '')}&year=${year}&month=${month}&amount=${amount}`);
+		        const result = await response.json();
+		        
+		        if (!result.success) {
+		            console.error('Failed to log manual invoice');
+		        }
+		    } catch (error) {
+		        console.error('Error logging manual invoice:', error);
 		    }
 		}
 		
