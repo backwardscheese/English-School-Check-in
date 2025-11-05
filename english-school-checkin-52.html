@@ -1007,6 +1007,8 @@
                 showTeacherPortal();
             } else {
                 alert('Incorrect password');
+				document.getElementById('loginPassword').value = '';
+				document.getElementById('loginPassword').focus();
             }
         }
         
