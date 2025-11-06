@@ -1749,6 +1749,17 @@
         });
         
         loadDataFromSheets();
+
+		// Auto-refresh checked-in list every 60 seconds
+		setInterval(async function() {
+		    // Reload logs from server
+		    const logsResponse = await fetch(`${SHEET_API_URL}?action=getLogs`);
+		    const logs = await logsResponse.json();
+		    data.logs = logs;
+		    
+		    // Update the display
+		    updateCheckedInList();
+		}, 60000); // 60000ms = 1 minute
     </script>
 </body>
 </html>
