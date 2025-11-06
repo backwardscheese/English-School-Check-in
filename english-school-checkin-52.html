@@ -1751,14 +1751,25 @@
         loadDataFromSheets();
 
 		// Auto-refresh checked-in list every 60 seconds
+		console.log('Starting auto-refresh interval...');
 		setInterval(async function() {
-		    // Reload logs from server
-		    const logsResponse = await fetch(`${SHEET_API_URL}?action=getLogs`);
-		    const logs = await logsResponse.json();
-		    data.logs = logs;
+		    console.log('Auto-refresh triggered at', new Date().toLocaleTimeString());
 		    
-		    // Update the display
-		    updateCheckedInList();
+		    try {
+		        // Reload logs from server
+		        const logsResponse = await fetch(`${SHEET_API_URL}?action=getLogs`);
+		        const logs = await logsResponse.json();
+		        data.logs = logs;
+		        
+		        console.log('Logs reloaded, updating checked-in list...');
+		        
+		        // Update the display
+		        updateCheckedInList();
+		        
+		        console.log('Checked-in students:', Array.from(checkedInStudents));
+		    } catch (error) {
+		        console.error('Error in auto-refresh:', error);
+		    }
 		}, 60000); // 60000ms = 1 minute
     </script>
 </body>
