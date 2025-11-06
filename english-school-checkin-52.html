@@ -922,25 +922,34 @@
         }
         
         function updateCheckedInList() {
-            checkedInStudents.clear();
-            const today = new Date().toDateString();
-            
-            data.students.forEach(student => {
-                const studentLogs = data.logs.filter(log => 
-                    log.studentId === student.id &&
-                    new Date(log.timestamp).toDateString() === today
-                ).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                
-                if (studentLogs.length > 0) {
-                    const lastLog = studentLogs[studentLogs.length - 1];
-                    if (isCheckIn(lastLog.action)) {
-                        checkedInStudents.add(student.id);
-                    }
-                }
-            });
-            
-            renderCheckedInCards();
-        }
+		    checkedInStudents.clear();
+		    
+		    // Get today's date at midnight (just the date part)
+		    const now = new Date();
+		    const todayYear = now.getFullYear();
+		    const todayMonth = now.getMonth();
+		    const todayDate = now.getDate();
+		    
+		    data.students.forEach(student => {
+		        const studentLogs = data.logs.filter(log => {
+		            const logDate = new Date(log.timestamp);
+		            // Check if log is from today
+		            return log.studentId === student.id &&
+		                   logDate.getFullYear() === todayYear &&
+		                   logDate.getMonth() === todayMonth &&
+		                   logDate.getDate() === todayDate;
+		        }).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+		        
+		        if (studentLogs.length > 0) {
+		            const lastLog = studentLogs[studentLogs.length - 1];
+		            if (isCheckIn(lastLog.action)) {
+		                checkedInStudents.add(student.id);
+		            }
+		        }
+		    });
+		    
+		    renderCheckedInCards();
+		}
         
         function renderCheckedInCards() {
             const container = document.getElementById('studentCards');
