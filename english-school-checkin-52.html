@@ -960,7 +960,7 @@
                 return `
                     <div class="student-card" id="card-${studentId}" onclick="checkOutStudent(${studentId})">
                         <h3>${student.name}</h3>
-                        <div class="info">PIN: ${String(student.id).padStart(3, '0')} | ${student.classType}</div>
+                        <div class="info">${student.classType}</div>
                         <div class="info" style="margin-top: 5px;">✓ Checked In - Tap to check out</div>
                     </div>
                 `;
