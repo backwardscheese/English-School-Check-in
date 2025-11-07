@@ -1,0 +1,51 @@
+function markStudentAbsent(replyToken, studentId, studentName, date) {
+  try {
+    const calendar = CalendarApp.getCalendarById('mckayenglishsakura@gmail.com');
+    
+    const lessonDate = new Date(date); // expected format: "YYYY-MM-DD"
+    const startTime = new Date(lessonDate);
+    const endTime = new Date(lessonDate);
+
+    // Weekday (Mon–Fri): lessons from 16:10–22:00
+    // Saturday: 10:00–22:00
+    if (lessonDate.getDay() === 6) { // Saturday
+      startTime.setHours(10, 0, 0);
+    } else {
+      startTime.setHours(16, 0, 0);
+    }
+    endTime.setHours(22, 0, 0);
+
+    // Find events for that date
+    const events = calendar.getEvents(startTime, endTime);
+    const targetEvents = events.filter(e => e.getTitle().includes(studentName));
+
+    if (targetEvents.length === 0) {
+      replyToLine(replyToken, `⚠ ${studentName}の${date}のレッスンが見つかりませんでした。`);
+      Logger.log(`No calendar event found for ${studentName} on ${date}`);
+      return;
+    }
+
+    targetEvents.forEach(event => {
+      const originalTitle = event.getTitle();
+
+      // Avoid double-marking
+      if (!originalTitle.includes('[Absent]')) {
+        event.setTitle(`[Absent] ${originalTitle}`);
+      }
+
+      // Set color to grey (Calendar color ID 8)
+      // Note: color IDs 1–11 are valid. 8 = grey.
+      event.setColor(CalendarApp.EventColor.GRAY);
+
+      Logger.log(`Marked absent: ${studentName} on ${date} (${originalTitle})`);
+    });
+
+    // ✅ Send clean confirmation to parent
+    const message = `✓ ${studentName}の${date}の欠席を記録しました。`;
+    replyToLine(replyToken, message);
+
+  } catch (error) {
+    Logger.log('Error in markStudentAbsent: ' + error);
+    replyToLine(replyToken, `エラーが発生しました: ${error.message}`);
+  }
+}
