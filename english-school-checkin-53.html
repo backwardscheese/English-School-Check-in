@@ -1541,80 +1541,80 @@
 		}
 		
 		async function showInvoicePreview(studentId, year, month) {
-		  const student = data.students.find(s => s.id === studentId);
+			const student = data.students.find(s => s.id === studentId);
 
-		  // Get logs for this student/month
-		  const monthLogs = data.logs.filter(log => {
-			const logDate = new Date(log.timestamp);
-			return (
-			  log.studentId === studentId &&
-			  logDate.getFullYear() === year &&
-			  logDate.getMonth() + 1 === month &&
-			  log.action === "Check In"
-			);
-		  });
+			// Get logs for this student/month
+			const monthLogs = data.logs.filter(log => {
+				const logDate = new Date(log.timestamp);
+				return (
+				  log.studentId === studentId &&
+				  logDate.getFullYear() === year &&
+				  logDate.getMonth() + 1 === month &&
+				  log.action === "Check In"
+				);
+			});
 
-		  if (monthLogs.length === 0) {
+			if (monthLogs.length === 0) {
 			alert(`No lessons found for this student in ${getMonthName(month)} ${year}`);
 			return;
-		  }
+			}
 
-		  const subtotal = monthLogs.reduce((sum, log) => sum + log.cost, 0);
-		  const tax = Math.round(subtotal * 0.1);
-		  const total = subtotal + tax;
+			const subtotal = monthLogs.reduce((sum, log) => sum + log.cost, 0);
+			const tax = Math.round(subtotal * 0.1);
+			const total = subtotal + tax;
 
-		  let nextMonth = month + 1;
-		  let nextYear = year;
-		  if (nextMonth > 12) {
+			let nextMonth = month + 1;
+			let nextYear = year;
+			if (nextMonth > 12) {
 			nextMonth = 1;
 			nextYear++;
-		  }
-
-		  // Create invoice text
-		  const invoiceText = `【マケイ英語教室】
-		${year}年${month}月分の請求書
-
-		生徒名: ${student.name}
-		${student.familyName ? '(' + student.familyName + ')' : ''}
-
-		レッスン回数: ${monthLogs.length}回
-		クラス: ${student.classType}
-
-		小計: ¥${subtotal.toLocaleString()}
-		消費税(10%): ¥${tax.toLocaleString()}
-		───────────────
-		合計: ¥${total.toLocaleString()}
-
-		お支払期限: ${nextYear}年${nextMonth}月末日
-
-		お支払いをよろしくお願いいたします。`;
-
-		  // Ask to copy
-		  if (confirm("Copy invoice text to clipboard?\n\n(You can then paste into SMS/Instagram)")) {
-			try {
-			  await navigator.clipboard.writeText(invoiceText);
-
-			  // Log and update
-			  await logManualInvoice(studentId, student.name, student.familyName, year, month, total);
-			  alert("✓ Invoice copied to clipboard!\n\nYou can now paste it into SMS or Instagram.");
-			  await loadInvoiceStatuses();
-
-			} catch (error) {
-			  console.error("Error copying:", error);
-
-			  // Manual fallback
-			  const textArea = document.createElement("textarea");
-			  textArea.value = invoiceText;
-			  document.body.appendChild(textArea);
-			  textArea.select();
-			  document.execCommand("copy");
-			  document.body.removeChild(textArea);
-
-			  alert("Invoice copied manually to clipboard.");
-			  await logManualInvoice(studentId, student.name, student.familyName, year, month, total);
-			  await loadInvoiceStatuses();
 			}
-		  }
+
+			// Create invoice text
+			const invoiceText = `【マケイ英語教室】
+			${year}年${month}月分の請求書
+
+			生徒名: ${student.name}
+			${student.familyName ? '(' + student.familyName + ')' : ''}
+
+			レッスン回数: ${monthLogs.length}回
+			クラス: ${student.classType}
+
+			小計: ¥${subtotal.toLocaleString()}
+			消費税(10%): ¥${tax.toLocaleString()}
+			───────────────
+			合計: ¥${total.toLocaleString()}
+
+			お支払期限: ${nextYear}年${nextMonth}月末日
+
+			お支払いをよろしくお願いいたします。`;
+
+			// Ask to copy
+			if (confirm("Copy invoice text to clipboard?\n\n(You can then paste into SMS/Instagram)")) {
+				try {
+				  await navigator.clipboard.writeText(invoiceText);
+
+				  // Log and update
+				  await logManualInvoice(studentId, student.name, student.familyName, year, month, total);
+				  alert("✓ Invoice copied to clipboard!\n\nYou can now paste it into SMS or Instagram.");
+				  await loadInvoiceStatuses();
+
+				} catch (error) {
+				  console.error("Error copying:", error);
+
+				  // Manual fallback
+				  const textArea = document.createElement("textarea");
+				  textArea.value = invoiceText;
+				  document.body.appendChild(textArea);
+				  textArea.select();
+				  document.execCommand("copy");
+				  document.body.removeChild(textArea);
+
+				  alert("Invoice copied manually to clipboard.");
+				  await logManualInvoice(studentId, student.name, student.familyName, year, month, total);
+				  await loadInvoiceStatuses();
+				}
+			}
 		}
 
 
