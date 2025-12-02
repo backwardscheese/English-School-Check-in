@@ -1,0 +1,126 @@
+Claude AI - December 2nd convo contents.
+
+Implementation Steps
+1. Add Your LINE User IDs to the Apps Script
+First, you need to get your and your wife's LINE User IDs. You can do this by:
+
+Having both of you send a message to your LINE bot
+Check the Apps Script execution logs to see the userId values
+
+Then add these constants at the top of your Apps Script (near where you have LINE_CHANNEL_ACCESS_TOKEN):
+
+// Add these lines after LINE_CHANNEL_SECRET
+var TEACHER_LINE_ID = 'YOUR_LINE_USER_ID_HERE';
+var WIFE_LINE_ID = 'YOUR_WIFE_LINE_USER_ID_HERE';
+
+2. Modify the markStudentAbsent Function
+Update your markStudentAbsent function to send notifications after successfully marking the absence:
+
+function markStudentAbsent(replyToken, studentId, studentName, date) {
+  try {
+    const calendar = CalendarApp.getCalendarById('mckayenglishsakura@gmail.com');
+    
+    if (!calendar) {
+      replyToLine(replyToken, 'カレンダーにアクセスできませんでした。');
+      return;
+    }
+    
+    const lessonDate = new Date(date + 'T00:00:00');
+    const startTime = new Date(lessonDate);
+    const endTime = new Date(lessonDate);
+
+    // Set time range based on day of week
+    if (lessonDate.getDay() === 6) { // Saturday
+      startTime.setHours(10, 0, 0, 0);
+    } else {
+      startTime.setHours(16, 10, 0, 0);
+    }
+    endTime.setHours(22, 0, 0, 0);
+
+    const events = calendar.getEvents(startTime, endTime);
+    const targetEvents = events.filter(e => e.getTitle().includes(studentName));
+
+    if (targetEvents.length === 0) {
+      replyToLine(replyToken, `⚠️ ${studentName}の${date}のレッスンが見つかりませんでした。`);
+      return;
+    }
+
+    targetEvents.forEach(event => {
+      const originalTitle = event.getTitle();
+      if (!originalTitle.includes('[Absent]')) {
+        event.setTitle(`[Absent] ${originalTitle}`);
+      }
+      event.setColor(CalendarApp.EventColor.GRAY);
+    });
+
+    // Log the absence
+    logAbsence(studentId, studentName, date);
+
+    // Send notifications to teachers
+    notifyTeachersOfAbsence(studentName, date);
+
+    // Reply to the parent
+    replyToLine(replyToken, `✅ ${studentName}の${date}の欠席を記録しました。`);
+
+  } catch (error) {
+    logError('markStudentAbsent error: ' + error);
+    replyToLine(replyToken, 'エラーが発生しました。先生にお問い合わせください。');
+  }
+}
+
+// New function to notify teachers
+function notifyTeachersOfAbsence(studentName, absenceDate) {
+  // Format the date nicely
+  const dateObj = new Date(absenceDate);
+  const formattedDate = Utilities.formatDate(dateObj, TIMEZONE, 'M月d日 (E)');
+  
+  const message = `🔔 欠席通知\n\n生徒: ${studentName}\n日付: ${formattedDate}\n\n保護者からLINEで欠席連絡がありました。`;
+  
+  // Send to both teachers
+  try {
+    if (TEACHER_LINE_ID) {
+      pushToLine(TEACHER_LINE_ID, message);
+    }
+    if (WIFE_LINE_ID) {
+      pushToLine(WIFE_LINE_ID, message);
+    }
+    Logger.log('Absence notification sent for: ' + studentName + ' on ' + absenceDate);
+  } catch (error) {
+    logError('notifyTeachersOfAbsence error: ' + error);
+  }
+}
+
+3. How to Get Your LINE User IDs
+To find your LINE User IDs:
+
+Temporarily add a test function to your Apps Script:
+
+function testGetMyLineId() {
+  // This will show in the logs when you send ANY message to your bot
+  Logger.log('Check the doPost logs to see your userId');
+}
+```
+
+2. **Send a test message** from both LINE accounts to your bot (any text message)
+
+3. **Check the execution logs** in Apps Script:
+   - Go to Apps Script Editor → Executions
+   - Find the recent `doPost` execution
+   - Look for the `userId` field in the logs
+
+4. **Copy those User IDs** and paste them into the constants at the top of your script
+
+### 4. Test the Implementation
+
+After updating the code:
+
+1. Deploy the new version of your web app
+2. Have a parent mark their child absent
+3. You and your wife should both receive a LINE notification like:
+```
+🔔 欠席通知
+
+生徒: 田中太郎
+日付: 12月5日 (Thu)
+
+保護者からLINEで欠席連絡がありました。
