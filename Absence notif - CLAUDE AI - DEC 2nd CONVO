@@ -2,12 +2,9 @@ Claude AI - December 2nd convo contents.
 
 Implementation Steps
 1. Add Your LINE User IDs to the Apps Script
-First, you need to get your and your wife's LINE User IDs. You can do this by:
+First, you need to get your and your wife's LINE User IDs.
 
-Having both of you send a message to your LINE bot
-Check the Apps Script execution logs to see the userId values
-
-Then add these constants at the top of your Apps Script (near where you have LINE_CHANNEL_ACCESS_TOKEN):
+Add these constants at the top of your Apps Script (near where you have LINE_CHANNEL_ACCESS_TOKEN):
 
 // Add these lines after LINE_CHANNEL_SECRET
 var TEACHER_LINE_ID = 'YOUR_LINE_USER_ID_HERE';
@@ -89,38 +86,3 @@ function notifyTeachersOfAbsence(studentName, absenceDate) {
     logError('notifyTeachersOfAbsence error: ' + error);
   }
 }
-
-3. How to Get Your LINE User IDs
-To find your LINE User IDs:
-
-Temporarily add a test function to your Apps Script:
-
-function testGetMyLineId() {
-  // This will show in the logs when you send ANY message to your bot
-  Logger.log('Check the doPost logs to see your userId');
-}
-```
-
-2. **Send a test message** from both LINE accounts to your bot (any text message)
-
-3. **Check the execution logs** in Apps Script:
-   - Go to Apps Script Editor → Executions
-   - Find the recent `doPost` execution
-   - Look for the `userId` field in the logs
-
-4. **Copy those User IDs** and paste them into the constants at the top of your script
-
-### 4. Test the Implementation
-
-After updating the code:
-
-1. Deploy the new version of your web app
-2. Have a parent mark their child absent
-3. You and your wife should both receive a LINE notification like:
-```
-🔔 欠席通知
-
-生徒: 田中太郎
-日付: 12月5日 (Thu)
-
-保護者からLINEで欠席連絡がありました。
