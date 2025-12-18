@@ -609,6 +609,45 @@
 		    color: #666;
 		    margin-top: 5px;
 		}
+		
+		.billing-summary {
+		    background: #202124;
+		    color: white;
+		    padding: 30px;
+		    border-radius: 10px;
+		    margin-top: 30px;
+		    display: grid;
+		    grid-template-columns: repeat(3, 1fr);
+		    gap: 20px;
+		}
+		
+		.summary-item {
+		    text-align: center;
+		    padding: 20px;
+		    background: rgba(255,255,255,0.1);
+		    border-radius: 8px;
+		}
+		
+		.summary-item h3 {
+		    font-size: 0.9em;
+		    color: #bbbbbb;
+		    margin-bottom: 10px;
+		    font-weight: 600;
+		}
+		
+		.summary-item .amount {
+		    font-size: 2em;
+		    font-weight: 700;
+		    color: white;
+		}
+		
+		.summary-item.outstanding .amount {
+		    color: #ffc107;
+		}
+		
+		.summary-item.collected .amount {
+		    color: #28a745;
+		}
     </style>
 </head>
 <body>
@@ -734,6 +773,21 @@
 			        <h3>Payment Tracking</h3>
 			        <div id="billingStudentsList"></div>
 			    </div>
+				
+				<div class="billing-summary" id="billingSummary">
+				    <div class="summary-item">
+				        <h3>TOTAL BILLED</h3>
+				        <div class="amount" id="totalBilled">¥0</div>
+				    </div>
+				    <div class="summary-item collected">
+				        <h3>COLLECTED</h3>
+				        <div class="amount" id="totalCollected">¥0</div>
+				    </div>
+				    <div class="summary-item outstanding">
+				        <h3>OUTSTANDING</h3>
+				        <div class="amount" id="totalOutstanding">¥0</div>
+				    </div>
+				</div>
 			</div>
 			
             <div id="financial" class="tab-content">
@@ -1519,9 +1573,11 @@
 		        const response = await fetch(`${SHEET_API_URL}?action=getAllInvoices&year=${year}&month=${month}`);
 		        currentInvoices = await response.json();
 		        renderBillingStudentsList();
+				updateBillingSummary();
 		    } catch (error) {
 		        console.error('Error loading invoices:', error);
 		        renderBillingStudentsList();
+				updateBillingSummary();
 		    }
 		}
 		
@@ -1859,6 +1915,24 @@
 		        console.error('Error:', error);
 		        alert('Error marking as paid: ' + error);
 		    }
+		}
+
+		function updateBillingSummary() {
+		    let totalBilled = 0;
+		    let totalCollected = 0;
+		    
+		    currentInvoices.forEach(invoice => {
+		        totalBilled += invoice.amount;
+		        if (invoice.paymentStatus === 'Paid') {
+		            totalCollected += invoice.amount;
+		        }
+		    });
+		    
+		    const totalOutstanding = totalBilled - totalCollected;
+		    
+		    document.getElementById('totalBilled').textContent = '¥' + totalBilled.toLocaleString();
+		    document.getElementById('totalCollected').textContent = '¥' + totalCollected.toLocaleString();
+		    document.getElementById('totalOutstanding').textContent = '¥' + totalOutstanding.toLocaleString();
 		}
 
 		function countStudentLessons(studentId, year, month) {
