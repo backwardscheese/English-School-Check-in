@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McKay English School Check-in System</title>
+    <style>
+        * {
+            margin: 0;
+		    padding: 0;
+		    box-sizing: border-box;
+		    -webkit-user-select: none; /* Safari */
+		    -moz-user-select: none;    /* Firefox */
+		    -ms-user-select: none;     /* IE/Edge */
+		    user-select: none;         /* Standard */
+		    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f9f5ee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 2px solid #bbbbbb;
+        }
+        
+        .header {
+            background: #202124;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-left {
+            flex: 0 0 150px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-logo {
+            max-width: 120px;
+            max-height: 80px;
+            object-fit: contain;
+        }
+        
+        .header-center {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .header-right {
+            flex: 0 0 150px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .teacher-login {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: #bbbbbb;
+            color: #000000;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 2px solid #bbbbbb;
+        }
+        
+        .teacher-login:hover {
+            background: white;
+            color: #000000;
+        }
+        
+        .main-layout {
+            display: flex;
+            min-height: 600px;
+        }
+        
+        .keypad-section {
+            flex: 0 0 400px;
+            padding: 40px;
+            background: #f9f5ee;
+            border-right: 2px solid #bbbbbb;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pin-display {
+            width: 100%;
+            padding: 20px;
+            font-size: 2.5em;
+            text-align: center;
+            background: white;
+            border: 3px solid #000000;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            letter-spacing: 15px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #000000;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-top: 20px;
+            text-align: center;
+            min-height: 30px;
+        }
+        
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 350px;
+        }
+        
+        .key {
+            background: white;
+            border: 3px solid #000000;
+            border-radius: 15px;
+            font-size: 2em;
+            font-weight: 600;
+            color: #000000;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        
+        .key:hover {
+            background: #000000;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .key:active {
+            transform: translateY(0);
+        }
+        
+        .key.special {
+            background: #bbbbbb;
+            border-color: #bbbbbb;
+            color: #000000;
+        }
+        
+        .key.special:hover {
+            background: #999999;
+            border-color: #999999;
+            color: white;
+        }
+        
+        .key.enter {
+            background: #28a745;
+            border-color: #000000;
+            color: white;
+        }
+        
+        .key.enter:hover {
+            background: #56db2e;
+            border-color: #000000;
+        }
+
+		.key.disabled {
+		    opacity: 0.5;
+		    cursor: not-allowed;
+		    pointer-events: none;
+		}
+		
+		.key.processing {
+		    background: #ffc107;
+		    border-color: #ffc107;
+		    color: #000;
+		}
+		
+		.student-card.processing {
+		    opacity: 0.6;
+		    cursor: not-allowed;
+		    pointer-events: none;
+		}
+		
+		.success-message {
+		    color: #28a745;
+		    font-size: 1.1em;
+		    font-weight: 600;
+		    margin-top: 20px;
+		    text-align: center;
+		    min-height: 30px;
+		}
+        
+        .cards-section {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+        
+        .cards-section h2 {
+            color: #000000;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .student-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .student-card {
+            background: #28a745;
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 2px solid #000000;
+        }
+        
+        .student-card:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            background: #56db2e;
+        }
+        
+        .student-card.pulse {
+            animation: pulse 0.5s;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+        
+        .pin-display.error {
+            border-color: #dc3545;
+            color: #dc3545;
+            animation: shake 0.5s;
+        }
+        
+        .student-card h3 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+        
+        .student-card .info {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .teacher-portal {
+            display: none;
+            padding: 40px;
+        }
+        
+        .teacher-portal.active {
+            display: block;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f9f5ee;
+            border-bottom: 2px solid #bbbbbb;
+            margin-bottom: 30px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            font-size: 1.1em;
+        }
+        
+        .tab:hover {
+            background: #bbbbbb;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #000000;
+            border-bottom: 3px solid #000000;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #000000;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #333333;
+        }
+        
+        .btn-secondary {
+            background: #bbbbbb;
+            color: #000000;
+            margin-left: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background: #999999;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .modal h2 {
+            color: #202124;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        
+        .student-item {
+            background: #f9f5ee;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #bbbbbb;
+        }
+        
+        .log-entry {
+            background: #f9f5ee;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #000000;
+        }
+        
+        .log-entry.check-in {
+            border-left-color: #28a745;
+        }
+        
+        .log-entry.check-out {
+            border-left-color: #dc3545;
+        }
+        
+        .log-entry strong {
+            color: #000000;
+        }
+        
+        .back-link {
+            display: inline-block;
+            color: #000000;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .financial-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #bbbbbb;
+        }
+        
+        .financial-table th {
+            background: #000000;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .financial-table td {
+            padding: 15px;
+            border-bottom: 1px solid #bbbbbb;
+        }
+        
+        .financial-table tr:hover {
+            background: #f9f5ee;
+        }
+        
+        .financial-table .total-row {
+            background: #f9f5ee;
+            font-weight: 700;
+            font-size: 1.1em;
+            color: #000000;
+        }
+        
+        .financial-table .total-row td {
+            border-top: 3px solid #000000;
+            border-bottom: none;
+        }
+        
+        .year-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .year-selector select {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+        }
+		
+		.billing-controls {
+			background: #f9f5ee;
+			padding: 20px;
+			border-radius: 10px;
+			margin-bottom: 30px;
+			border: 2px solid #bbbbbb;
+		}
+
+		.billing-row {
+			display: flex;
+			gap: 15px;
+			align-items: center;
+			margin-bottom: 15px;
+		}
+
+		.billing-row label {
+			font-weight: 600;
+			min-width: 80px;
+		}
+
+		.billing-row select,
+		.billing-row input {
+			padding: 10px;
+			border: 2px solid #bbbbbb;
+			border-radius: 8px;
+			font-size: 1em;
+		}
+
+		.billing-section {
+			background: white;
+			padding: 20px;
+			border-radius: 10px;
+			margin-bottom: 20px;
+			border: 1px solid #bbbbbb;
+		}
+
+		.billing-section h3 {
+			margin-bottom: 15px;
+			color: #000000;
+		}
+
+		.status-badge {
+			display: inline-block;
+			padding: 4px 12px;
+			border-radius: 12px;
+			font-size: 0.85em;
+			font-weight: 600;
+			margin-left: 10px;
+		}
+
+		.status-registered {
+			background: #28a745;
+			color: white;
+		}
+
+		.status-not-registered {
+			background: #dc3545;
+			color: white;
+		}
+
+		.status-not-sent {
+		    background: #ffc107;
+		    color: #000;
+		}
+		
+		.status-invoice-sent {
+		    background: #17a2b8;
+		    color: white;
+		}
+		
+		.status-paid {
+		    background: #28a745;
+		    color: white;
+		}
+
+		.status-no-lessons {
+		    background: #6c757d;
+		    color: white;
+		}
+		
+		.invoice-info {
+		    font-size: 0.9em;
+		    color: #666;
+		    margin-top: 5px;
+		}
+		
+		.billing-summary {
+		    background: #202124;
+		    color: white;
+		    padding: 30px;
+		    border-radius: 10px;
+		    margin-top: 30px;
+		    display: grid;
+		    grid-template-columns: repeat(3, 1fr);
+		    gap: 20px;
+		}
+		
+		.summary-item {
+		    text-align: center;
+		    padding: 20px;
+		    background: rgba(255,255,255,0.1);
+		    border-radius: 8px;
+		}
+		
+		.summary-item h3 {
+		    font-size: 0.9em;
+		    color: #bbbbbb;
+		    margin-bottom: 10px;
+		    font-weight: 600;
+		}
+		
+		.summary-item .amount {
+		    font-size: 2em;
+		    font-weight: 700;
+		    color: white;
+		}
+		
+		.summary-item.outstanding .amount {
+		    color: #ffc107;
+		}
+		
+		.summary-item.collected .amount {
+		    color: #28a745;
+		}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <img src="../pics/McKay-logo.png" class="header-logo">
+            </div>
+            <div class="header-center">
+                <h1>📚 McKay English School 📚</h1>
+                <p>Student Check-in System</p>
+            </div>
+            <div class="header-right">
+                <a href="#" class="teacher-login" onclick="showLoginModal(); return false;">Teacher Login</a>
+            </div>
+        </div>
+        
+        <!-- Student Check-in View -->
+        <div id="studentView">
+            <div class="main-layout">
+                <!-- Left: Keypad -->
+                <div class="keypad-section">
+                    <div class="pin-display" id="pinDisplay">___</div>
+                    <div class="keypad">
+                        <div class="key" onclick="addDigit('1')">1</div>
+                        <div class="key" onclick="addDigit('2')">2</div>
+                        <div class="key" onclick="addDigit('3')">3</div>
+                        <div class="key" onclick="addDigit('4')">4</div>
+                        <div class="key" onclick="addDigit('5')">5</div>
+                        <div class="key" onclick="addDigit('6')">6</div>
+                        <div class="key" onclick="addDigit('7')">7</div>
+                        <div class="key" onclick="addDigit('8')">8</div>
+                        <div class="key" onclick="addDigit('9')">9</div>
+                        <div class="key special" onclick="clearPin()">←</div>
+                        <div class="key" onclick="addDigit('0')">0</div>
+                        <div class="key enter" onclick="submitPin()">✓</div>
+                    </div>
+                    <div class="error-message" id="errorMessage"></div>
+                </div>
+                
+                <!-- Right: Student Cards -->
+                <div class="cards-section">
+                    <h2>Currently Checked In</h2>
+                    <div class="student-cards" id="studentCards">
+                        <div class="empty-state">
+                            <h3>No students checked in</h3>
+                            <p>Enter your PIN to check in</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Teacher Portal -->
+        <div id="teacherPortal" class="teacher-portal">
+            <a href="#" class="back-link" onclick="showStudentView(); return false;">← Back to Student View</a>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTeacherTab('logs')">Logs</button>
+                <button class="tab" onclick="switchTeacherTab('students')">Manage Students</button>
+				<button class="tab" onclick="switchTeacherTab('billing')">Billing</button>
+                <button class="tab" onclick="switchTeacherTab('financial')">Financial Report</button>
+            </div>
+            
+            <div id="logs" class="tab-content active">
+                <h2>Activity Log</h2>
+                <div class="form-group">
+                    <input type="text" id="studentSearch" placeholder="Search student name..." style="max-width: 400px;">
+                    <button class="btn btn-primary" onclick="searchStudentLogs()">Search</button>
+                    <button class="btn btn-secondary" onclick="clearSearch()">Show Today's Logs</button>
+                </div>
+                <div id="logsList"></div>
+            </div>
+            
+            <div id="students" class="tab-content">
+                <h2>Manage Students</h2>
+                <button class="btn btn-primary" onclick="showAddStudentModal()">+ Add New Student</button>
+                <div id="studentsList" style="margin-top: 20px;"></div>
+            </div>
+			
+			<div id="billing" class="tab-content">
+			    <h2>Billing & Invoices</h2>
+			    
+			    <div class="billing-controls">
+			        <div class="billing-row">
+			            <label>Year:</label>
+			            <select id="billingYear" onchange="loadInvoiceStatuses()"></select>
+			            <label style="margin-left: 20px;">Month:</label>
+			            <select id="billingMonth" onchange="loadInvoiceStatuses()">
+			                <option value="1">January</option>
+			                <option value="2">February</option>
+			                <option value="3">March</option>
+			                <option value="4">April</option>
+			                <option value="5">May</option>
+			                <option value="6">June</option>
+			                <option value="7">July</option>
+			                <option value="8">August</option>
+			                <option value="9">September</option>
+			                <option value="10">October</option>
+			                <option value="11">November</option>
+			                <option value="12">December</option>
+			            </select>
+			            <button class="btn btn-primary" onclick="billAllStudents()" style="margin-left: auto;">
+			                📧 Bill All Students/Families
+			            </button>
+			        </div>
+			    </div>
+			    
+			    <div class="billing-section">
+			        <h3>Family Billing</h3>
+			        <div class="billing-row">
+			            <label>Family:</label>
+			            <select id="familySelect" style="flex: 1; max-width: 300px;">
+			                <option value="">Select a family...</option>
+			            </select>
+			            <button class="btn btn-primary" onclick="billSelectedFamily()">
+			                Send Family Invoice
+			            </button>
+			        </div>
+			    </div>
+			    
+			    <div class="billing-section">
+			        <h3>Payment Tracking</h3>
+			        <div id="billingStudentsList"></div>
+			    </div>
+				
+				<div class="billing-summary" id="billingSummary">
+				    <div class="summary-item">
+				        <h3>TOTAL BILLED</h3>
+				        <div class="amount" id="totalBilled">¥0</div>
+				    </div>
+				    <div class="summary-item collected">
+				        <h3>COLLECTED</h3>
+				        <div class="amount" id="totalCollected">¥0</div>
+				    </div>
+				    <div class="summary-item outstanding">
+				        <h3>OUTSTANDING</h3>
+				        <div class="amount" id="totalOutstanding">¥0</div>
+				    </div>
+				</div>
+			</div>
+			
+            <div id="financial" class="tab-content">
+                <h2>Financial Report</h2>
+                <div class="year-selector">
+                    <label><strong>Year:</strong></label>
+                    <select id="yearSelector" onchange="renderFinancialReport()"></select>
+                </div>
+                <table class="financial-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Revenue (¥)</th>
+                            <th>Check-ins</th>
+                            <th>Active Students</th>
+                        </tr>
+                    </thead>
+                    <tbody id="financialTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <h2>Teacher Login</h2>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="loginPassword" placeholder="Enter password">
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="checkPassword()">Login</button>
+                <button class="btn btn-secondary" onclick="closeModal('loginModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Student Modal -->
+    <div id="addStudentModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Student</h2>
+            <div class="form-group">
+                <label>Student Name:</label>
+                <input type="text" id="studentName" placeholder="Enter student name">
+            </div>
+            <div class="form-group">
+                <label>Family Name (optional):</label>
+                <input type="text" id="studentFamily" placeholder="e.g., Tanaka Family">
+                <small style="color: #666;">Leave blank if not part of a family group</small>
+            </div>
+            <div class="form-group">
+                <label>Class Type:</label>
+                <select id="studentClass">
+                    <option value="ES">ES (50min / ¥2,500)</option>
+                    <option value="JHS">JHS (70min / ¥3,000)</option>
+                    <option value="HS">HS (70min / ¥3,000)</option>
+                    <option value="Private">Private (50min / ¥5,000)</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="saveStudent()">Save Student</button>
+                <button class="btn btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx4I6UXUeuRHi3j7ZiefhEPTPQne-bZW5hJTpRPoTR4s-0tk2oHjwsvgWpLwfxpKavzQg/exec';
+        				
+        const lessonTypes = {
+            'ES': { duration: 50, cost: 2500 },
+			'ES*': { duration: 50, cost: 1125 },
+            'JHS': { duration: 70, cost: 3000 },
+            'HS': { duration: 70, cost: 3000 },
+            'Private': { duration: 50, cost: 5000 },
+			'Private*': { duration: 70, cost: 5000 },
+			'Private**': { duration: 40, cost: 3000 }
+        };
+        
+        const TEACHER_PASSWORD = 'teacher123';
+        
+        let data = {
+            students: [],
+            logs: []
+        };
+        
+        let currentPin = '';
+        let checkedInStudents = new Set();
+		let isProcessing = false;
+        
+        async function loadDataFromSheets() {
+            try {
+                const studentsResponse = await fetch(`${SHEET_API_URL}?action=getStudents`);
+                const students = await studentsResponse.json();
+                data.students = students;
+                
+                const logsResponse = await fetch(`${SHEET_API_URL}?action=getLogs`);
+                const logs = await logsResponse.json();
+                data.logs = logs;
+                
+                updateCheckedInList();
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+        
+        function addDigit(digit) {
+            if (currentPin.length < 3) {
+                currentPin += digit;
+                updatePinDisplay();
+            }
+        }
+        
+        function clearPin() {
+            currentPin = '';
+            updatePinDisplay();
+            clearError();
+        }
+        
+        function updatePinDisplay() {
+            const display = document.getElementById('pinDisplay');
+            const masked = currentPin.padEnd(3, '_');
+            display.textContent = masked;
+        }
+        
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            const displayEl = document.getElementById('pinDisplay');
+            
+            errorEl.textContent = message;
+            displayEl.classList.add('error');
+            
+            setTimeout(() => {
+                errorEl.textContent = '';
+                displayEl.classList.remove('error');
+            }, 2000);
+        }
+        
+        function clearError() {
+            document.getElementById('errorMessage').textContent = '';
+        }
+
+		function disableKeypad(disabled) {
+		    document.querySelectorAll('.key').forEach(key => {
+		        if (disabled) {
+		            key.classList.add('disabled');
+		        } else {
+		            key.classList.remove('disabled');
+		        }
+		    });
+		}
+		
+		function showSuccess(message) {
+		    const successEl = document.getElementById('successMessage') || createSuccessElement();
+		    successEl.textContent = message;
+		    
+		    setTimeout(() => {
+		        successEl.textContent = '';
+		    }, 1500);
+		}
+		
+		function createSuccessElement() {
+		    const el = document.createElement('div');
+		    el.id = 'successMessage';
+		    el.className = 'success-message';
+		    document.querySelector('.keypad-section').appendChild(el);
+		    return el;
+		}
+        
+        async function submitPin() {
+		    if (isProcessing) {
+		        return; // Ignore if already processing
+		    }
+		    
+		    if (currentPin.length !== 3) {
+		        showError('Please enter 3 digits');
+		        return;
+		    }
+		    
+		    const studentId = parseInt(currentPin);
+		    const student = data.students.find(s => s.id === studentId);
+		    
+		    if (!student) {
+		        showError('Invalid PIN');
+		        clearPin();
+		        return;
+		    }
+		    
+		    if (checkedInStudents.has(studentId)) {
+		        pulseStudentCard(studentId);
+		        clearPin();
+		        return;
+		    }
+		    
+		    // Disable all inputs
+		    isProcessing = true;
+		    disableKeypad(true);
+		    
+		    try {
+		        await checkInStudent(student);
+		        showSuccess('✓ Checked in!');
+		        clearPin();
+		    } catch (error) {
+		        showError('Error checking in');
+		    } finally {
+		        // Re-enable after delay
+		        setTimeout(() => {
+		            isProcessing = false;
+		            disableKeypad(false);
+		        }, 1500);
+		    }
+		}
+        
+        async function checkInStudent(student) {
+            const lessonInfo = lessonTypes[student.classType];
+            
+            const newLog = {
+                studentId: student.id,
+                studentName: student.name,
+                actionType: 'in',
+                classType: student.classType,
+                duration: lessonInfo.duration,
+                cost: lessonInfo.cost,
+                timestamp: new Date().toISOString()
+            };
+            
+            try {
+                const response = await fetch(`${SHEET_API_URL}?action=addLog&studentId=${newLog.studentId}&studentName=${encodeURIComponent(newLog.studentName)}&actionType=${newLog.actionType}&classType=${newLog.classType}&duration=${newLog.duration}&cost=${newLog.cost}&timestamp=${encodeURIComponent(newLog.timestamp)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    newLog.id = result.id;
+                    newLog.action = 'Check In';
+                    data.logs.push(newLog);
+                    checkedInStudents.add(student.id);
+                    renderCheckedInCards();
+                }
+            } catch (error) {
+                console.error('Error checking in:', error);
+                showError('Error checking in');
+            }
+        }
+        
+        async function checkOutStudent(studentId) {
+		    if (isProcessing) {
+		        return; // Ignore if already processing
+		    }
+		    
+		    const card = document.getElementById(`card-${studentId}`);
+		    if (card) {
+		        card.classList.add('processing');
+		    }
+		    
+		    isProcessing = true;
+		    
+		    const student = data.students.find(s => s.id === studentId);
+		    const lessonInfo = lessonTypes[student.classType];
+		    
+		    const newLog = {
+		        studentId: student.id,
+		        studentName: student.name,
+		        actionType: 'out',
+		        classType: student.classType,
+		        duration: lessonInfo.duration,
+		        cost: lessonInfo.cost,
+		        timestamp: new Date().toISOString()
+		    };
+		    
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=addLog&studentId=${newLog.studentId}&studentName=${encodeURIComponent(newLog.studentName)}&actionType=${newLog.actionType}&classType=${newLog.classType}&duration=${newLog.duration}&cost=${newLog.cost}&timestamp=${encodeURIComponent(newLog.timestamp)}`);
+		        const result = await response.json();
+		        
+		        if (result.success) {
+		            newLog.id = result.id;
+		            newLog.action = 'Check Out';
+		            data.logs.push(newLog);
+		            checkedInStudents.delete(studentId);
+		            renderCheckedInCards();
+		        }
+		    } catch (error) {
+		        console.error('Error checking out:', error);
+		        if (card) {
+		            card.classList.remove('processing');
+		        }
+		    } finally {
+		        setTimeout(() => {
+		            isProcessing = false;
+		        }, 1500);
+		    }
+		}
+        
+        function updateCheckedInList() {
+		    checkedInStudents.clear();
+		    
+		    // Get today's date at midnight (just the date part)
+		    const now = new Date();
+		    const todayYear = now.getFullYear();
+		    const todayMonth = now.getMonth();
+		    const todayDate = now.getDate();
+		    
+		    data.students.forEach(student => {
+		        const studentLogs = data.logs.filter(log => {
+		            const logDate = new Date(log.timestamp);
+		            // Check if log is from today
+		            return log.studentId === student.id &&
+		                   logDate.getFullYear() === todayYear &&
+		                   logDate.getMonth() === todayMonth &&
+		                   logDate.getDate() === todayDate;
+		        }).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+		        
+		        if (studentLogs.length > 0) {
+		            const lastLog = studentLogs[studentLogs.length - 1];
+		            if (isCheckIn(lastLog.action)) {
+		                checkedInStudents.add(student.id);
+		            }
+		        }
+		    });
+		    
+		    renderCheckedInCards();
+		}
+        
+        function renderCheckedInCards() {
+            const container = document.getElementById('studentCards');
+            
+            if (checkedInStudents.size === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No students checked in</h3>
+                        <p>Enter your PIN to check in</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const cards = Array.from(checkedInStudents).map(studentId => {
+                const student = data.students.find(s => s.id === studentId);
+                return `
+                    <div class="student-card" id="card-${studentId}" onclick="checkOutStudent(${studentId})">
+                        <h3>${student.name}</h3>
+                        <div class="info">${student.classType}</div>
+                        <div class="info" style="margin-top: 5px;">✓ Checked In - Tap to check out</div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = cards;
+        }
+        
+        function pulseStudentCard(studentId) {
+            const card = document.getElementById(`card-${studentId}`);
+            if (card) {
+                card.classList.add('pulse');
+                setTimeout(() => {
+                    card.classList.remove('pulse');
+                }, 500);
+            }
+        }
+        
+        function isCheckIn(action) {
+            if (!action) return false;
+            const actionStr = String(action).toLowerCase();
+            return actionStr === 'in' || actionStr === 'check in' || actionStr.includes('check in');
+        }
+        
+        function isCheckOut(action) {
+            if (!action) return false;
+            const actionStr = String(action).toLowerCase();
+            return actionStr === 'out' || actionStr === 'check out' || actionStr.includes('check out');
+        }
+        
+        // Teacher Portal Functions
+        function showLoginModal() {
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginModal').classList.add('active');
+            setTimeout(() => {
+                document.getElementById('loginPassword').focus();
+            }, 100);
+        }
+        
+        function checkPassword() {
+            const password = document.getElementById('loginPassword').value;
+            if (password === TEACHER_PASSWORD) {
+                closeModal('loginModal');
+                showTeacherPortal();
+            } else {
+                alert('Incorrect password');
+				document.getElementById('loginPassword').value = '';
+				document.getElementById('loginPassword').focus();
+            }
+        }
+        
+        function showTeacherPortal() {
+            document.getElementById('studentView').style.display = 'none';
+            document.getElementById('teacherPortal').classList.add('active');
+            renderLogs();
+            renderStudentsList();
+        }
+        
+        function showStudentView() {
+            document.getElementById('teacherPortal').classList.remove('active');
+            document.getElementById('studentView').style.display = 'block';
+            updateCheckedInList();
+        }
+        
+        async function switchTeacherTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'logs') {
+                renderLogs();
+            }
+            if (tabName === 'students') {
+                renderStudentsList();
+            }
+			if (tabName === 'billing') {
+				populateBillingSelectors();
+			}
+            if (tabName === 'financial') {
+                try {
+                    const logsResponse = await fetch(`${SHEET_API_URL}?action=getLogs`);
+                    const logs = await logsResponse.json();
+                    data.logs = logs;
+                } catch (error) {
+                    console.error('Error loading logs:', error);
+                }
+                populateYearSelector();
+                renderFinancialReport();
+            }
+        }
+        
+        function renderLogs() {
+            const logsList = document.getElementById('logsList');
+            const today = new Date().toDateString();
+            const todayLogs = data.logs.filter(log => 
+                new Date(log.timestamp).toDateString() === today
+            );
+            
+            if (todayLogs.length === 0) {
+                logsList.innerHTML = '<div class="empty-state"><h3>No activity today</h3></div>';
+                return;
+            }
+            
+            logsList.innerHTML = todayLogs.reverse().map(log => {
+                const time = new Date(log.timestamp).toLocaleTimeString();
+                const date = new Date(log.timestamp).toLocaleDateString();
+                const actionClass = isCheckIn(log.action) ? 'check-in' : 'check-out';
+                const actionText = isCheckIn(log.action) ? 'Checked In' : 'Checked Out';
+                
+                return `
+                    <div class="log-entry ${actionClass}">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <strong>${log.studentName}</strong> (PIN: ${String(log.studentId).padStart(3, '0')}) - ${actionText}<br>
+                                Class: ${log.classType} (${log.duration}min - ¥${log.cost.toLocaleString()})<br>
+                                Date: ${date} | Time: ${time}
+                            </div>
+                            <button class="btn btn-danger btn-small" onclick="deleteLog(${log.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function searchStudentLogs() {
+            const searchName = document.getElementById('studentSearch').value.trim().toLowerCase();
+            if (!searchName) {
+                alert('Please enter a student name');
+                return;
+            }
+            
+            const studentLogs = data.logs.filter(log => 
+                log.studentName.toLowerCase().includes(searchName)
+            );
+            
+            if (studentLogs.length === 0) {
+                document.getElementById('logsList').innerHTML = 
+                    '<div class="empty-state"><h3>No logs found for this student</h3></div>';
+                return;
+            }
+            
+            const logsByMonth = {};
+            studentLogs.forEach(log => {
+                const date = new Date(log.timestamp);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                
+                if (!logsByMonth[monthKey]) {
+                    logsByMonth[monthKey] = {
+                        monthName: monthName,
+                        logs: [],
+                        total: 0
+                    };
+                }
+                
+                if (isCheckIn(log.action)) {
+                    logsByMonth[monthKey].logs.push(log);
+                    logsByMonth[monthKey].total += log.cost;
+                }
+            });
+            
+            const sortedMonths = Object.keys(logsByMonth).sort().reverse();
+            
+            let html = `<h3>Search Results for: ${searchName}</h3>`;
+            
+            sortedMonths.forEach(monthKey => {
+                const monthData = logsByMonth[monthKey];
+                const subtotal = monthData.total;
+                const tax = Math.round(subtotal * 0.1);
+                const totalWithTax = subtotal + tax;
+                
+                html += `
+                    <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h3 style="color: #667eea; margin-bottom: 15px;">${monthData.monthName}</h3>
+                `;
+                
+                monthData.logs.forEach(log => {
+                    const date = new Date(log.timestamp).toLocaleDateString();
+                    const time = new Date(log.timestamp).toLocaleTimeString();
+                    html += `
+                        <div class="log-entry check-in">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <strong>${log.studentName}</strong> - Checked In<br>
+                                    Class: ${log.classType} (${log.duration}min - ¥${log.cost.toLocaleString()})<br>
+                                    Date: ${date} | Time: ${time}
+                                </div>
+                                <button class="btn btn-danger btn-small" onclick="deleteLog(${log.id})">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px; font-weight: 600;">
+                            Subtotal: ¥${subtotal.toLocaleString()}<br>
+                            Tax (10%): ¥${tax.toLocaleString()}<br>
+                            <span style="color: #667eea; font-size: 1.2em;">Total: ¥${totalWithTax.toLocaleString()}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('logsList').innerHTML = html;
+        }
+        
+        function clearSearch() {
+            document.getElementById('studentSearch').value = '';
+            renderLogs();
+        }
+        
+        async function deleteLog(logId) {
+            if (confirm('Are you sure you want to delete this log entry?')) {
+                try {
+                    const response = await fetch(`${SHEET_API_URL}?action=deleteLog&id=${logId}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        data.logs = data.logs.filter(log => log.id !== logId);
+                        
+                        const searchValue = document.getElementById('studentSearch').value.trim();
+                        if (searchValue) {
+                            searchStudentLogs();
+                        } else {
+                            renderLogs();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error deleting log:', error);
+                    alert('Error deleting log. Please try again.');
+                }
+            }
+        }
+        
+        function showAddStudentModal() {
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentClass').value = 'ES';
+            document.getElementById('addStudentModal').classList.add('active');
+        }
+        
+        async function saveStudent() {
+            const name = document.getElementById('studentName').value.trim();
+            const familyName = document.getElementById('studentFamily').value.trim();
+            const classType = document.getElementById('studentClass').value;
+            
+            if (!name) {
+                alert('Please enter a student name');
+                return;
+            }
+            
+            const url = `${SHEET_API_URL}?action=addStudent&name=${encodeURIComponent(name)}&familyName=${encodeURIComponent(familyName)}&classType=${classType}`;
+            console.log('Sending request to:', url);
+            console.log('Family name value:', familyName);
+            
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                console.log('Response:', result);
+                
+                if (result.success) {
+                    data.students.push({
+                        id: result.id,
+                        name: name,
+                        familyName: familyName,
+                        classType: classType
+                    });
+                    
+                    closeModal('addStudentModal');
+                    renderStudentsList();
+                    alert(`Student added successfully! PIN: ${String(result.id).padStart(3, '0')}`);
+                }
+            } catch (error) {
+                console.error('Error adding student:', error);
+                alert('Error adding student. Please try again.');
+            }
+        }
+        
+        function renderStudentsList() {
+            const list = document.getElementById('studentsList');
+            if (data.students.length === 0) {
+                list.innerHTML = '<div class="empty-state"><h3>No students yet</h3></div>';
+                return;
+            }
+            
+            list.innerHTML = data.students.map(student => `
+                <div class="student-item">
+                    <div>
+                        <strong>${student.name}</strong> (PIN: ${String(student.id).padStart(3, '0')})<br>
+                        <small>Class: ${student.classType} (${lessonTypes[student.classType].duration}min - ¥${lessonTypes[student.classType].cost.toLocaleString()})</small>
+                    </div>
+                    <div>
+                        <button class="btn btn-danger btn-small" onclick="deleteStudent(${student.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function deleteStudent(id) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                try {
+                    const response = await fetch(`${SHEET_API_URL}?action=deleteStudent&id=${id}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        data.students = data.students.filter(s => s.id !== id);
+                        renderStudentsList();
+                    }
+                } catch (error) {
+                    console.error('Error deleting student:', error);
+                    alert('Error deleting student. Please try again.');
+                }
+            }
+        }
+
+        function populateYearSelector() {
+            const yearSelector = document.getElementById('yearSelector');
+            const currentYear = new Date().getFullYear();
+            const years = new Set();
+            
+            years.add(currentYear);
+            
+            data.logs.forEach(log => {
+                const year = new Date(log.timestamp).getFullYear();
+                years.add(year);
+            });
+            
+            const sortedYears = Array.from(years).sort((a, b) => b - a);
+            
+            yearSelector.innerHTML = sortedYears.map(year => 
+                `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`
+            ).join('');
+        }
+
+        function renderFinancialReport() {
+            const selectedYear = parseInt(document.getElementById('yearSelector').value);
+            const tbody = document.getElementById('financialTableBody');
+            
+            const months = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            
+            let yearTotal = 0;
+            let yearCheckIns = 0;
+            
+            const monthlyData = months.map((monthName, index) => {
+                const monthLogs = data.logs.filter(log => {
+                    const logDate = new Date(log.timestamp);
+                    return logDate.getFullYear() === selectedYear && 
+                           logDate.getMonth() === index &&
+                           isCheckIn(log.action);
+                });
+                
+                const revenue = monthLogs.reduce((sum, log) => sum + log.cost, 0);
+                const checkIns = monthLogs.length;
+                
+                const uniqueStudents = new Set(monthLogs.map(log => log.studentId));
+                const activeStudents = uniqueStudents.size;
+                
+                yearTotal += revenue;
+                yearCheckIns += checkIns;
+                
+                return {
+                    month: monthName,
+                    revenue: revenue,
+                    checkIns: checkIns,
+                    activeStudents: activeStudents
+                };
+            });
+            
+            let html = '';
+            monthlyData.forEach(data => {
+                html += `
+                    <tr>
+                        <td>${data.month}</td>
+                        <td>¥${data.revenue.toLocaleString()}</td>
+                        <td>${data.checkIns}</td>
+                        <td>${data.activeStudents}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                <tr class="total-row">
+                    <td><strong>YEARLY TOTAL</strong></td>
+                    <td><strong>¥${yearTotal.toLocaleString()}</strong></td>
+                    <td><strong>${yearCheckIns}</strong></td>
+                    <td><strong>-</strong></td>
+                </tr>
+            `;
+            
+            tbody.innerHTML = html;
+        }
+
+		// Billing Functions
+
+		let currentInvoices = [];
+		
+		async function populateBillingSelectors() {
+		    // Populate year selector
+		    const yearSelect = document.getElementById('billingYear');
+		    const currentYear = new Date().getFullYear();
+		    const years = [currentYear - 1, currentYear, currentYear + 1];
+		    
+		    yearSelect.innerHTML = years.map(year => 
+		        `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`
+		    ).join('');
+		    
+		    // Set default month to last month
+		    const lastMonth = new Date().getMonth(); // 0-11, current month - 1
+		    document.getElementById('billingMonth').value = lastMonth === 0 ? 12 : lastMonth;
+		    if (lastMonth === 0) {
+		        document.getElementById('billingYear').value = currentYear - 1;
+		    }
+		    
+		    // Populate family selector
+		    const families = new Set();
+		    data.students.forEach(student => {
+		        if (student.familyName) {
+		            families.add(student.familyName);
+		        }
+		    });
+		    
+		    const familySelect = document.getElementById('familySelect');
+		    familySelect.innerHTML = '<option value="">Select a family...</option>' +
+		        Array.from(families).sort().map(family => 
+		            `<option value="${family}">${family}</option>`
+		        ).join('');
+		    
+		    // Load invoice statuses
+		    await loadInvoiceStatuses();
+		}
+		
+		async function loadInvoiceStatuses() {
+		    const year = parseInt(document.getElementById('billingYear').value);
+		    const month = parseInt(document.getElementById('billingMonth').value);
+		    
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=getAllInvoices&year=${year}&month=${month}`);
+		        currentInvoices = await response.json();
+		        renderBillingStudentsList();
+				updateBillingSummary();
+		    } catch (error) {
+		        console.error('Error loading invoices:', error);
+		        renderBillingStudentsList();
+				updateBillingSummary();
+		    }
+		}
+		
+		function getInvoiceForStudent(studentId) {
+		    return currentInvoices.find(inv => inv.studentId === studentId);
+		}
+		
+		function renderBillingStudentsList() {
+		    const list = document.getElementById('billingStudentsList');
+		    
+		    if (data.students.length === 0) {
+		        list.innerHTML = '<div class="empty-state"><h3>No students</h3></div>';
+		        return;
+		    }
+		    
+		    const year = parseInt(document.getElementById('billingYear').value);
+		    const month = parseInt(document.getElementById('billingMonth').value);
+		    
+		    // Group by families and individuals
+		    const families = {};
+		    const individuals = [];
+		    
+		    data.students.forEach(student => {
+		        if (student.familyName) {
+		            if (!families[student.familyName]) {
+		                families[student.familyName] = [];
+		            }
+		            families[student.familyName].push(student);
+		        } else {
+		            individuals.push(student);
+		        }
+		    });
+		    
+		    let html = '';
+		    
+		    // Render families
+		    Object.keys(families).sort().forEach(familyName => {
+		        const familyMembers = families[familyName];
+		        const primaryMember = familyMembers[0];
+		        const invoice = getInvoiceForStudent(primaryMember.id);
+		        const hasLineId = primaryMember.lineUserId && primaryMember.lineUserId.trim() !== '';
+		        
+		        // Check if family has any lessons this month
+		        const familyLessonCount = countFamilyLessons(familyMembers, year, month);
+		        
+		        let statusBadge, actionButton;
+		        
+		        if (familyLessonCount === 0) {
+		            // No lessons this month
+		            statusBadge = `<span class="status-badge status-no-lessons">No Lessons</span>`;
+		            actionButton = `<div class="invoice-info">0 lessons in ${getMonthName(month)}</div>`;
+		        } else if (invoice && invoice.paymentStatus === 'Paid') {
+		            const paidDate = new Date(invoice.datePaid).toLocaleDateString();
+		            statusBadge = `<span class="status-badge status-paid">✓ Paid</span>`;
+		            actionButton = `<div class="invoice-info">Paid on ${paidDate}</div>`;
+		        } else if (invoice) {
+		            const sentDate = new Date(invoice.dateSent).toLocaleDateString();
+		            statusBadge = `<span class="status-badge status-invoice-sent">Invoice Sent</span>`;
+		            actionButton = `
+		                <div class="invoice-info">Sent: ${sentDate}</div>
+		                <button class="btn btn-primary btn-small" onclick="markAsPaid(${invoice.id})">Mark as Paid</button>
+		            `;
+		        } else if (!hasLineId) {
+		            statusBadge = '<span class="status-badge status-not-registered">Manual Billing Required</span>';
+		            actionButton = `<button class="btn btn-secondary btn-small" onclick="generatePrintableInvoice(${primaryMember.id})">📄 View/Print Invoice</button>`;
+		        } else {
+		            statusBadge = '<span class="status-badge status-not-sent">Not Sent</span>';
+		            actionButton = `<button class="btn btn-primary btn-small" onclick="billSelectedFamilyDirect('${familyName}')">Send Invoice</button>`;
+		        }
+		        
+		        html += `
+		            <div class="student-item">
+		                <div>
+		                    <strong>${familyName} (Family)</strong>
+		                    ${statusBadge}
+		                    <br><small style="color: #666;">Members: ${familyMembers.map(m => m.name).join(', ')}</small>
+		                    ${familyLessonCount > 0 ? `<br><small style="color: #666;">${familyLessonCount} lessons this month</small>` : ''}
+		                </div>
+		                <div style="text-align: right;">
+		                    ${actionButton}
+		                </div>
+		            </div>
+		        `;
+		    });
+		    
+		    // Render individuals
+		    individuals.forEach(student => {
+		        const invoice = getInvoiceForStudent(student.id);
+		        const hasLineId = student.lineUserId && student.lineUserId.trim() !== '';
+		        
+		        // Check if student has any lessons this month
+		        const lessonCount = countStudentLessons(student.id, year, month);
+		        
+		        let statusBadge, actionButton;
+		        
+		        if (lessonCount === 0) {
+		            // No lessons this month
+		            statusBadge = `<span class="status-badge status-no-lessons">No Lessons</span>`;
+		            actionButton = `<div class="invoice-info">0 lessons in ${getMonthName(month)}</div>`;
+		        } else if (invoice && invoice.paymentStatus === 'Paid') {
+		            const paidDate = new Date(invoice.datePaid).toLocaleDateString();
+		            statusBadge = `<span class="status-badge status-paid">✓ Paid</span>`;
+		            actionButton = `<div class="invoice-info">Paid on ${paidDate}</div>`;
+		        } else if (invoice) {
+		            const sentDate = new Date(invoice.dateSent).toLocaleDateString();
+		            statusBadge = `<span class="status-badge status-invoice-sent">Invoice Sent</span>`;
+		            actionButton = `
+		                <div class="invoice-info">Sent: ${sentDate}</div>
+		                <button class="btn btn-primary btn-small" onclick="markAsPaid(${invoice.id})">Mark as Paid</button>
+		            `;
+		        } else if (!hasLineId) {
+		            statusBadge = '<span class="status-badge status-not-registered">Manual Billing Required</span>';
+		            actionButton = `<button class="btn btn-secondary btn-small" onclick="generatePrintableInvoice(${student.id})">📄 View/Print Invoice</button>`;
+		        } else {
+		            statusBadge = '<span class="status-badge status-not-sent">Not Sent</span>';
+		            actionButton = `<button class="btn btn-primary btn-small" onclick="billIndividualStudent(${student.id})">Send Invoice</button>`;
+		        }
+		        
+		        html += `
+		            <div class="student-item">
+		                <div>
+		                    <strong>${student.name}</strong> (PIN: ${String(student.id).padStart(3, '0')})
+		                    ${statusBadge}
+		                    ${lessonCount > 0 ? `<br><small style="color: #666;">${lessonCount} lessons this month</small>` : ''}
+		                </div>
+		                <div style="text-align: right;">
+		                    ${actionButton}
+		                </div>
+		            </div>
+		        `;
+		    });
+		    
+		    list.innerHTML = html;
+		}
+		
+		function generatePrintableInvoice(studentId) {
+		    const student = data.students.find(s => s.id === studentId);
+		    const year = parseInt(document.getElementById('billingYear').value);
+		    const month = parseInt(document.getElementById('billingMonth').value);
+		    
+		    showInvoicePreview(studentId, year, month);
+		}
+		
+		async function showInvoicePreview(studentId, year, month) {
+			const student = data.students.find(s => s.id === studentId);
+
+			// Get logs for this student/month
+			const monthLogs = data.logs.filter(log => {
+				const logDate = new Date(log.timestamp);
+				return (
+				  log.studentId === studentId &&
+				  logDate.getFullYear() === year &&
+				  logDate.getMonth() + 1 === month &&
+				  log.action === "Check In"
+				);
+			});
+
+			if (monthLogs.length === 0) {
+			alert(`No lessons found for this student in ${getMonthName(month)} ${year}`);
+			return;
+			}
+
+			const subtotal = monthLogs.reduce((sum, log) => sum + log.cost, 0);
+			const tax = Math.round(subtotal * 0.1);
+			const total = subtotal + tax;
+
+			let nextMonth = month + 1;
+			let nextYear = year;
+			if (nextMonth > 12) {
+			nextMonth = 1;
+			nextYear++;
+			}
+
+			// Create invoice text
+			const invoiceText = `【マケイ英語教室】
+			${year}年${month}月分の請求書
+
+			生徒名: ${student.name}
+			${student.familyName ? '(' + student.familyName + ')' : ''}
+
+			レッスン回数: ${monthLogs.length}回
+			クラス: ${student.classType}
+
+			小計: ¥${subtotal.toLocaleString()}
+			消費税(10%): ¥${tax.toLocaleString()}
+			───────────────
+			合計: ¥${total.toLocaleString()}
+
+			お支払期限: ${nextYear}年${nextMonth}月末日
+
+			お支払いをよろしくお願いいたします。`;
+
+			// Ask to copy
+			if (confirm("Copy invoice text to clipboard?\n\n(You can then paste into SMS/Instagram)")) {
+				try {
+				  await navigator.clipboard.writeText(invoiceText);
+
+				  // Log and update
+				  await logManualInvoice(studentId, student.name, student.familyName, year, month, total);
+				  alert("✓ Invoice copied to clipboard!\n\nYou can now paste it into SMS or Instagram.");
+				  await loadInvoiceStatuses();
+
+				} catch (error) {
+				  console.error("Error copying:", error);
+
+				  // Manual fallback
+				  const textArea = document.createElement("textarea");
+				  textArea.value = invoiceText;
+				  document.body.appendChild(textArea);
+				  textArea.select();
+				  document.execCommand("copy");
+				  document.body.removeChild(textArea);
+
+				  alert("Invoice copied manually to clipboard.");
+				  await logManualInvoice(studentId, student.name, student.familyName, year, month, total);
+				  await loadInvoiceStatuses();
+				}
+			}
+		}
+
+
+		async function logManualInvoice(studentId, studentName, familyName, year, month, amount) {
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=logManualInvoice&studentId=${studentId}&studentName=${encodeURIComponent(studentName)}&familyName=${encodeURIComponent(familyName || '')}&year=${year}&month=${month}&amount=${amount}`);
+		        const result = await response.json();
+		        
+		        if (!result.success) {
+		            console.error('Failed to log manual invoice');
+		        }
+		    } catch (error) {
+		        console.error('Error logging manual invoice:', error);
+		    }
+		}
+		
+		async function billAllStudents() {
+		    const year = parseInt(document.getElementById('billingYear').value);
+		    const month = parseInt(document.getElementById('billingMonth').value);
+		    
+		    if (!confirm(`Send invoices to ALL students/families for ${getMonthName(month)} ${year}?\n\nThis will send LINE messages to everyone with LINE registered.`)) {
+		        return;
+		    }
+		    
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=billAll&year=${year}&month=${month}`);
+		        const result = await response.json();
+		        
+		        if (result.success) {
+		            alert(`Billing complete!\n\nSent: ${result.sent}\nFailed: ${result.failed}\n\nCheck the Apps Script logs for details.`);
+		            await loadInvoiceStatuses(); // Reload to show updated statuses
+		        } else {
+		            alert('Error sending invoices. Check Apps Script logs.');
+		        }
+		    } catch (error) {
+		        console.error('Error:', error);
+		        alert('Error sending invoices: ' + error);
+		    }
+		}
+		
+		async function billSelectedFamily() {
+		    const familyName = document.getElementById('familySelect').value;
+		    
+		    if (!familyName) {
+		        alert('Please select a family');
+		        return;
+		    }
+		    
+		    await billSelectedFamilyDirect(familyName);
+		}
+		
+		async function billSelectedFamilyDirect(familyName) {
+		    const year = parseInt(document.getElementById('billingYear').value);
+		    const month = parseInt(document.getElementById('billingMonth').value);
+		    
+		    if (!confirm(`Send invoice to ${familyName} for ${getMonthName(month)} ${year}?`)) {
+		        return;
+		    }
+		    
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=billFamily&familyName=${encodeURIComponent(familyName)}&year=${year}&month=${month}`);
+		        const result = await response.json();
+		        
+		        if (result.success) {
+		            alert(`Invoice sent to ${familyName}!`);
+		            await loadInvoiceStatuses(); // Reload to show updated statuses
+		        } else {
+		            alert('Error: ' + (result.error || 'Failed to send invoice'));
+		        }
+		    } catch (error) {
+		        console.error('Error:', error);
+		        alert('Error sending invoice: ' + error);
+		    }
+		}
+		
+		async function billIndividualStudent(studentId) {
+		    const student = data.students.find(s => s.id === studentId);
+		    const year = parseInt(document.getElementById('billingYear').value);
+		    const month = parseInt(document.getElementById('billingMonth').value);
+		    
+		    if (!confirm(`Send invoice to ${student.name} for ${getMonthName(month)} ${year}?`)) {
+		        return;
+		    }
+		    
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=billStudent&studentId=${studentId}&year=${year}&month=${month}`);
+		        const result = await response.json();
+		        
+		        if (result.success) {
+		            alert(`Invoice sent to ${student.name}!`);
+		            await loadInvoiceStatuses(); // Reload to show updated statuses
+		        } else {
+		            alert('Error: ' + (result.error || 'Failed to send invoice'));
+		        }
+		    } catch (error) {
+		        console.error('Error:', error);
+		        alert('Error sending invoice: ' + error);
+		    }
+		}
+		
+		async function markAsPaid(invoiceId) {
+		    if (!confirm('Mark this invoice as paid?')) {
+		        return;
+		    }
+		    
+		    try {
+		        const response = await fetch(`${SHEET_API_URL}?action=markPaid&invoiceId=${invoiceId}`);
+		        const result = await response.json();
+		        
+		        if (result.success) {
+		            alert('✓ Invoice marked as paid!');
+		            await loadInvoiceStatuses(); // Reload to show updated statuses
+		        } else {
+		            alert('Error: ' + (result.error || 'Failed to mark as paid'));
+		        }
+		    } catch (error) {
+		        console.error('Error:', error);
+		        alert('Error marking as paid: ' + error);
+		    }
+		}
+
+		function updateBillingSummary() {
+		    let totalBilled = 0;
+		    let totalCollected = 0;
+		    
+		    currentInvoices.forEach(invoice => {
+		        totalBilled += invoice.amount;
+		        if (invoice.paymentStatus === 'Paid') {
+		            totalCollected += invoice.amount;
+		        }
+		    });
+		    
+		    const totalOutstanding = totalBilled - totalCollected;
+		    
+		    document.getElementById('totalBilled').textContent = '¥' + totalBilled.toLocaleString();
+		    document.getElementById('totalCollected').textContent = '¥' + totalCollected.toLocaleString();
+		    document.getElementById('totalOutstanding').textContent = '¥' + totalOutstanding.toLocaleString();
+		}
+
+		function countStudentLessons(studentId, year, month) {
+		    return data.logs.filter(log => {
+		        const logDate = new Date(log.timestamp);
+		        return log.studentId === studentId &&
+		               logDate.getFullYear() === year &&
+		               logDate.getMonth() + 1 === month &&
+		               log.action === 'Check In';
+		    }).length;
+		}
+		
+		function countFamilyLessons(familyMembers, year, month) {
+		    let total = 0;
+		    familyMembers.forEach(member => {
+		        total += countStudentLessons(member.id, year, month);
+		    });
+		    return total;
+		}
+		
+		function getMonthName(month) {
+		    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+		                   'July', 'August', 'September', 'October', 'November', 'December'];
+		    return months[month - 1];
+		}
+		
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
+        });
+        
+        loadDataFromSheets();
+
+		// Auto-refresh checked-in list every 60 seconds
+		console.log('Starting auto-refresh interval...');
+		setInterval(async function() {
+		    console.log('Auto-refresh triggered at', new Date().toLocaleTimeString());
+		    
+		    try {
+		        // Reload logs from server
+		        const logsResponse = await fetch(`${SHEET_API_URL}?action=getLogs`);
+		        const logs = await logsResponse.json();
+		        data.logs = logs;
+		        
+		        console.log('Logs reloaded, updating checked-in list...');
+		        
+		        // Update the display
+		        updateCheckedInList();
+		        
+		        console.log('Checked-in students:', Array.from(checkedInStudents));
+		    } catch (error) {
+		        console.error('Error in auto-refresh:', error);
+		    }
+		}, 60000); // 60000ms = 1 minute
+    </script>
+</body>
+</html>
