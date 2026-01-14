@@ -843,9 +843,12 @@
                 <label>Class Type:</label>
                 <select id="studentClass">
                     <option value="ES">ES (50min / ¥2,500)</option>
+					<option value="ES">ES* (25min / ¥1,250)</option>
                     <option value="JHS">JHS (70min / ¥3,000)</option>
                     <option value="HS">HS (70min / ¥3,000)</option>
                     <option value="Private">Private (50min / ¥5,000)</option>
+					<option value="Private*">Private (70min / ¥5,000)</option>
+					<option value="Private**">Private (40min / ¥3,000)</option>
                 </select>
             </div>
             <div>
@@ -860,7 +863,7 @@
         				
         const lessonTypes = {
             'ES': { duration: 50, cost: 2500 },
-			'ES*': { duration: 50, cost: 1125 },
+			'ES*': { duration: 25, cost: 1250 },
             'JHS': { duration: 70, cost: 3000 },
             'HS': { duration: 70, cost: 3000 },
             'Private': { duration: 50, cost: 5000 },
